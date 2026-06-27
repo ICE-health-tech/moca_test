@@ -3,7 +3,7 @@ import type { BreadcrumbCrumb } from '../../lib/breadcrumbs'
 import { MocaAppHeader } from './MocaAppHeader'
 import { MocaBottomNav } from './MocaBottomNav'
 import { MocaBreadcrumb } from './MocaBreadcrumb'
-import '../../styles/stitch-elderly.css'
+import '../../../styles/stitch-elderly.css'
 
 type Props = {
   children: ReactNode
