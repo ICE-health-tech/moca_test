@@ -12,7 +12,7 @@
 .elderly-layout p,
 .elderly-layout label,
 .elderly-layout span,
-.elderly-layout div:not([class*="text-xs"]):not([class*="text-[10px]"]):not([class*="text-[") {
+.elderly-layout div:not([class*="text-xs"]):not([class*="text-[10px]"]) {
   font-size: 16px;
 }
 

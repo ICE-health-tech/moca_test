@@ -14,19 +14,23 @@ export function MocaBreadcrumb({ items, variant = 'stitch', className = '' }: Pr
 
   if (crumbs.length <= 1) return null
 
+  const crumbBase = 'inline-flex items-center !min-h-0 py-0 !text-sm leading-none'
+
   const linkClass =
     variant === 'stitch'
-      ? 'text-on-surface-variant transition-colors hover:text-primary'
-      : 'text-slate-500 transition-colors hover:text-blue-600'
+      ? `${crumbBase} text-on-surface-variant transition-colors hover:text-primary`
+      : `${crumbBase} text-slate-500 transition-colors hover:text-blue-600`
 
   const currentClass =
-    variant === 'stitch' ? 'font-medium text-on-surface' : 'font-medium text-slate-900'
+    variant === 'stitch'
+      ? `${crumbBase} font-medium text-on-surface`
+      : `${crumbBase} font-medium text-slate-900`
 
-  const sepClass = variant === 'stitch' ? 'text-outline' : 'text-slate-300'
+  const sepClass = variant === 'stitch' ? 'text-outline shrink-0' : 'text-slate-300 shrink-0'
 
   return (
-    <nav aria-label="Breadcrumb" className={className}>
-      <ol className="flex flex-wrap items-center gap-1 text-sm">
+    <nav aria-label="Breadcrumb" className={`w-full ${className}`}>
+      <ol className="m-0 flex list-none flex-wrap items-center gap-1 p-0 w-full text-sm">
         {crumbs.map((crumb, i) => {
           const isLast = i === crumbs.length - 1
           return (

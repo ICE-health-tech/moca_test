@@ -275,8 +275,8 @@ function StepShell({ title, badge, instruction, autoLines, speech, children, foo
   }, [title]);
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6">
-      <div className="bg-white rounded-3xl shadow-sm border-2 border-gray-200 p-6 sm:p-8">
+    <div className="max-w-2xl mx-auto px-4 py-2 ">
+      <div className="bg-white rounded-3xl shadow-sm border-2 border-gray-200  sm:p-8">
         <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6 leading-tight">{title}</h1>
         {instruction && (
           <AudioGuide text={instruction} autoLines={autoLines} speech={speech} />
@@ -1047,7 +1047,7 @@ function Section4Attention({ speech, answers, setAnswer, onNext, onBack }) {
   };
 
   return (
-    <>
+    <div className="p-4 border-2 border-red-600">
       <StepShell
         badge="Phần 4 / 9 · Sự chú ý"
         title="Sự chú ý"
@@ -1132,7 +1132,7 @@ function Section4Attention({ speech, answers, setAnswer, onNext, onBack }) {
         </div>
       </StepShell>
       <NavFooter onBack={onBack} onNext={onNext} />
-    </>
+    </div>
   );
 }
 
@@ -1745,7 +1745,7 @@ export default function MocaTestContainer() {
   const sectionProps = { set, speech, answers, setAnswer, onNext: next, onBack: back };
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 text-lg" style={{ fontFamily: "system-ui, sans-serif" }}>
+    <div className="min-h-[90dvh] bg-gray-50  border-2 border-red-200 text-gray-900 text-lg" style={{ fontFamily: "system-ui, sans-serif" }}>
       {phase === "exam" && <ProgressBar value={progress} currentStep={currentStep} />}
 
       {phase === "start" && (

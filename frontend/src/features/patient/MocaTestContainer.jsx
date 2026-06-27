@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { useLocation } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import {
   Volume2, VolumeX, Undo2, Eraser, ChevronRight, ChevronLeft,
   Mic, Square, Play, Lock, CheckCircle2, AlertCircle, Clock, Lightbulb,
@@ -193,11 +194,12 @@ function AudioGuide({ text, speech, autoLines }) {
       <button
         type="button"
         onClick={() => (speech.speaking ? speech.cancel() : speech.speak(lines))}
-        className="moca-btn-primary mt-4"
+        className="moca-btn-primary"
+        style={{ minHeight: 34, fontSize: "0.8125rem" }}
         disabled={!speech.supported}
         aria-label="Phát hướng dẫn bằng giọng nói"
       >
-        {speech.speaking ? <VolumeX size={24} /> : <Volume2 size={24} />}
+        {speech.speaking ? <VolumeX size={18} /> : <Volume2 size={18} />}
         {speech.speaking ? "Dừng nghe" : "Nghe hướng dẫn"}
       </button>
       {!speech.supported && (
@@ -232,10 +234,10 @@ function NavFooter({ onBack, onNext, nextLabel = "Tiếp tục", nextDisabled, b
   return (
     <nav className="moca-nav" aria-label="Điều hướng bài test">
       <button type="button" onClick={onNext} disabled={nextDisabled} className="moca-btn-primary">
-        {nextLabel} <ChevronRight size={22} />
+        {nextLabel} <ChevronRight size={18} />
       </button>
       <button type="button" onClick={onBack} disabled={backDisabled} className="moca-btn-ghost">
-        <ChevronLeft size={20} /> Quay lại
+        <ChevronLeft size={16} /> Quay lại
       </button>
     </nav>
   );
@@ -243,6 +245,28 @@ function NavFooter({ onBack, onNext, nextLabel = "Tiếp tục", nextDisabled, b
 
 function TextField(props) {
   return <input {...props} className={"moca-field " + (props.className || "")} />;
+}
+
+function TextFieldWithRecording({ value, onChange, placeholder, label, inputMode, type, recordingKey, recordingValue, onRecordingSaved }) {
+  return (
+    <div className="flex gap-2 items-start">
+      <TextField
+        type={type}
+        inputMode={inputMode}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        className="flex-1"
+      />
+      <RecorderButton
+        label={label || `Ghi âm: ${placeholder || ""}`}
+        value={recordingValue}
+        onSaved={onRecordingSaved}
+        compact={true}
+        showPlayback={true}
+      />
+    </div>
+  );
 }
 
 /* =============================================================================
@@ -368,7 +392,7 @@ function DrawingCanvas({ width = 560, height = 360, backgroundDraw, onStrokesCha
           type="button"
           onClick={undo}
           disabled={strokeCount === 0}
-          className="flex-1 min-h-[56px] inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-gray-300 px-5 py-4 text-xl font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-40"
+          className="moca-tool-btn flex-1 min-h-[56px] inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-gray-300 px-5 py-4 text-xl font-bold hover:bg-gray-50 disabled:border-gray-200 disabled:bg-gray-50"
         >
           <Undo2 size={24} /> Hoàn tác
         </button>
@@ -376,7 +400,7 @@ function DrawingCanvas({ width = 560, height = 360, backgroundDraw, onStrokesCha
           type="button"
           onClick={clear}
           disabled={strokeCount === 0}
-          className="flex-1 min-h-[56px] inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-gray-300 px-5 py-4 text-xl font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-40"
+          className="moca-tool-btn flex-1 min-h-[56px] inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-gray-300 px-5 py-4 text-xl font-bold hover:bg-gray-50 disabled:border-gray-200 disabled:bg-gray-50"
         >
           <Eraser size={24} /> Xóa hết
         </button>
@@ -502,7 +526,7 @@ function Section1Visuospatial({ speech, answers, setAnswer, onNext, onBack }) {
           </div>
         ) : (
           <DrawingCanvas
-            key={current.key}
+            key={current.key} 
             width={560}
             height={360}
             backgroundDraw={current.bg}
@@ -532,20 +556,21 @@ function Section2Naming({ set, speech, answers, setAnswer, onNext, onBack }) {
         instruction="Hãy nhìn từng hình và cho biết tên con vật. Bạn có thể gõ tên hoặc ghi âm và nghe lại."
         speech={speech}
       >
-        <div className="space-y-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        
           {set.naming.map((animal, idx) => (
               <div key={animal.id} className="rounded-2xl border border-gray-200 p-5">
-                <div className="grid sm:grid-cols-3 gap-4 items-start">
-                  <div className="rounded-2xl bg-white border border-gray-200 p-4 flex flex-col items-center justify-center min-h-[200px]">
+                <div className="flex flex-col gap-4">
+                  <div className="rounded-2xl bg-white border border-gray-200 p-4 flex flex-col items-center justify-center min-h-[120px]">
                     <img
                       src={animal.image}
                       alt={`Con vật ${idx + 1}`}
-                      className="max-h-[180px] w-full object-contain"
+                      className="max-h-[80px] w-full object-contain"
                       loading="lazy"
                     />
                   </div>
-                  <div className="sm:col-span-2 flex flex-col justify-center">
-                    <label className="block text-xl font-bold text-gray-700 mb-3">
+                  <div className="flex flex-col justify-center">
+                    <label className="block text-base font-bold text-gray-700 mb-2">
                       Tên con vật {idx + 1}
                     </label>
                     <div className="space-y-3">
@@ -721,11 +746,11 @@ function SentenceRecorder({ label, expectedSentence, value, onSaved }) {
 
       {!rec.recording && !rec.processing ? (
         <button type="button" onClick={() => rec.start(handleComplete)} className="moca-btn-primary">
-          <Mic size={22} /> Bấm để ghi âm
+          <Mic size={18} /> Bấm để ghi âm
         </button>
       ) : (
         <button type="button" onClick={rec.stop} className="moca-btn-primary !bg-[#dc2626] hover:!bg-[#b91c1c] animate-pulse">
-          <Square size={22} /> {rec.processing ? "Đang nhận giọng…" : "Dừng ghi"}
+            <Square size={20} /> {rec.processing ? "Đang nhận giọng…" : "Dừng ghi"}
         </button>
       )}
 
@@ -770,8 +795,8 @@ function RecorderButton({ label, value, onSaved, compact = false, showPlayback =
   const [playing, setPlaying] = useState(false);
 
   const variantStyles = {
-    default: "bg-blue-600 hover:bg-blue-700",
-    primary: "bg-blue-600 hover:bg-blue-700",
+    default: "bg-blue-600 text-black hover:bg-blue-700",
+    primary: "bg-blue-600 text-black hover:bg-blue-700",
     secondary: "bg-gray-100 border-2 border-gray-300 text-gray-700 hover:bg-gray-50",
   };
 
@@ -784,31 +809,31 @@ function RecorderButton({ label, value, onSaved, compact = false, showPlayback =
           <button
             type="button"
             onClick={() => rec.start((r) => onSaved(r.blobUrl || `recorded:${label}`))}
-            className="min-h-[56px] min-w-[56px] rounded-2xl bg-red-500 p-4 text-white hover:bg-red-600"
+            className="min-h-[42px] min-w-[42px] rounded-2xl bg-red-600 !text-white hover:bg-red-700 p-3"
             title={label}
             aria-label={label}
           >
-            <Mic size={26} />
+            <Mic size={20} />
           </button>
         ) : (
           <button
             type="button"
             onClick={rec.stop}
-            className="min-h-[56px] min-w-[56px] rounded-2xl bg-red-600 p-4 text-white hover:bg-red-700 animate-pulse"
+            className="min-h-[42px] min-w-[42px] rounded-2xl bg-red-700 !text-white hover:bg-red-800 animate-pulse p-3"
             title="Dừng ghi"
           >
-            <Square size={26} />
+            <Square size={20} />
           </button>
         )}
         {value && showPlayback && (
           <button
             type="button"
             onClick={() => setPlaying(!playing)}
-            className="min-h-[56px] min-w-[56px] rounded-2xl bg-green-500 p-4 text-white hover:bg-green-600"
+            className="min-h-[42px] min-w-[42px] rounded-2xl bg-green-600 !text-white hover:bg-green-700 p-3"
             title="Nghe lại"
             aria-label="Nghe lại bản ghi"
           >
-            <Play size={26} />
+            <Play size={20} />
           </button>
         )}
         {value && playing && value.startsWith && value.startsWith("blob:") && (
@@ -841,7 +866,7 @@ function RecorderButton({ label, value, onSaved, compact = false, showPlayback =
             onClick={() => rec.start((r) => onSaved(r.blobUrl || `recorded:${label}`))}
             className={`min-h-[60px] flex-1 inline-flex items-center justify-center gap-3 rounded-2xl px-6 py-4 text-white text-xl font-bold ${buttonClass}`}
           >
-            <Mic size={26} /> Bấm để ghi âm
+            <Mic size={20} /> Bấm để ghi âm
           </button>
         ) : (
           <button
@@ -913,9 +938,9 @@ function Section3Memory({ set, speech, answers, setAnswer, onNext, onBack, markS
         <button
           type="button"
           onClick={playWords}
-          className="w-full min-h-[64px] inline-flex items-center justify-center gap-3 rounded-2xl bg-blue-600 px-6 py-5 text-white text-2xl font-bold hover:bg-blue-700"
+          className="w-full min-h-[44px] inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-4 py-3 text-white font-bold hover:bg-blue-700"
         >
-          <Play size={28} /> Nghe 5 từ
+          <Play size={20} /> Nghe 5 từ
         </button>
 
         <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 mt-6">
@@ -1051,7 +1076,7 @@ function LetterAVigilance({ speech, onComplete }) {
               e.preventDefault();
               registerPress();
             }}
-            className="w-full min-h-[80px] rounded-2xl bg-blue-600 px-6 py-6 text-white text-2xl font-bold hover:bg-blue-700 select-none active:scale-[0.98]"
+            className="w-full min-h-[56px] rounded-2xl bg-blue-600 px-4 py-4 text-white font-bold hover:bg-blue-700 select-none active:scale-[0.98]"
           >
             BẤM khi thấy chữ A
           </button>
@@ -1080,54 +1105,63 @@ function Section4Attention({ speech, answers, setAnswer, onNext, onBack }) {
 
   return (
     <>
-      <StepShell
-        badge="Phần 4 / 9 · Sự chú ý"
-        title="Sự chú ý"
-        instruction="Phần này gồm ba bài: nhắc lại dãy số, phản xạ với chữ A, và phép trừ liên tiếp."
-        speech={speech}
-      >
+      <div className="w-full max-w-[80rem] mx-auto">
+        <p className="moca-badge">Phần 4 / 9 · Sự chú ý</p>
+        <h1 className="moca-title">Sự chú ý</h1>
+        <AudioGuide
+          text="Phần này gồm ba bài: nhắc lại dãy số, phản xạ với chữ A, và phép trừ liên tiếp."
+          speech={speech}
+        />
         {/* 4A digit spans */}
+        <div className="grid grid-cols-3 gap-3">
+       
         <div className="rounded-2xl border border-gray-200 p-5 mb-5">
           <p className="font-semibold text-gray-700 mb-3">4A · Nhắc lại dãy số</p>
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-gray-600">Nhắc lại theo chiều xuôi</span>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-medium text-gray-500">Nhắc lại theo chiều xuôi</span>
                 <button
                   onClick={() => speech.speak(ATTENTION.digitsForward.join(" ... "))}
-                  className="inline-flex items-center gap-1 text-blue-700 font-semibold text-sm"
+                  className="inline-flex items-center gap-1 text-blue-600 font-medium text-xs"
                 >
-                  <Volume2 size={18} /> Nghe dãy số
+                  <Volume2 size={14} /> Nghe dãy số
                 </button>
               </div>
               <div className="rounded-2xl bg-gray-50 border border-gray-200 px-4 py-3 mb-3 text-center font-mono text-xl font-bold text-gray-900 spacing-loose">
                 {ATTENTION.digitsForward.join("  —  ")}
               </div>
-              <TextField
+              <TextFieldWithRecording
                 value={fwd}
                 inputMode="numeric"
                 onChange={(e) => setAnswer("section_4a_forward", e.target.value)}
                 placeholder="Nhập dãy số vừa nghe…"
+                label="Ghi âm dãy số xuôi"
+                recordingValue={answers.section_4a_forward_recording}
+                onRecordingSaved={(u) => setAnswer("section_4a_forward_recording", u)}
               />
             </div>
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-gray-600">Nhắc lại theo chiều ngược</span>
+                <span className="text-xs font-medium text-gray-500">Nhắc lại theo chiều ngược</span>
                 <button
                   onClick={() => speech.speak(ATTENTION.digitsBackwardRead.join(" ... "))}
-                  className="inline-flex items-center gap-1 text-blue-700 font-semibold text-sm"
+                  className="inline-flex items-center gap-1 text-blue-600 font-medium text-xs"
                 >
-                  <Volume2 size={18} /> Nghe dãy số
+                  <Volume2 size={14} /> Nghe dãy số
                 </button>
               </div>
               <div className="rounded-2xl bg-gray-50 border border-gray-200 px-4 py-3 mb-3 text-center font-mono text-xl font-bold text-gray-900">
                 {ATTENTION.digitsBackwardRead.join("  —  ")}
               </div>
-              <TextField
+              <TextFieldWithRecording
                 value={bwd}
                 inputMode="numeric"
                 onChange={(e) => setAnswer("section_4a_backward", e.target.value)}
                 placeholder="Nhập theo thứ tự ngược lại…"
+                label="Ghi âm dãy số ngược"
+                recordingValue={answers.section_4a_backward_recording}
+                onRecordingSaved={(u) => setAnswer("section_4a_backward_recording", u)}
               />
             </div>
           </div>
@@ -1162,7 +1196,8 @@ function Section4Attention({ speech, answers, setAnswer, onNext, onBack }) {
             ))}
           </div>
         </div>
-      </StepShell>
+      </div>
+      </div>
       <NavFooter onBack={onBack} onNext={onNext} />
     </>
   );
@@ -1278,7 +1313,7 @@ function Section6Fluency({ set, speech, answers, setAnswer, onNext, onBack }) {
             <span className="text-3xl font-bold tabular-nums">{fmtMMSS(seconds)}</span>
           </div>
           {!running && !finished && (
-            <button onClick={start} className="rounded-xl bg-blue-600 px-6 py-3 text-white font-bold hover:bg-blue-700">
+            <button onClick={start} className="rounded-xl bg-blue-600 px-4 py-2 text-white font-bold hover:bg-blue-700" style={{ fontSize: "0.875rem" }}>
               Bắt đầu
             </button>
           )}
@@ -1352,12 +1387,17 @@ function Section7Abstraction({ set, speech, answers, setAnswer, onNext, onBack }
                   <Volume2 size={22} />
                 </button>
               </div>
-              <TextField
+              <TextFieldWithRecording
                 value={value[idx]?.text || ""}
                 onChange={(e) =>
-                  setAnswer("section_7", { ...value, [idx]: { pair: item.pair, text: e.target.value } })
+                  setAnswer("section_7", { ...value, [idx]: { pair: item.pair, text: e.target.value, recording: value[idx]?.recording } })
                 }
                 placeholder="Cùng thuộc nhóm…"
+                label={`Ghi âm cặp: ${item.pair}`}
+                recordingValue={value[idx]?.recording}
+                onRecordingSaved={(u) =>
+                  setAnswer("section_7", { ...value, [idx]: { ...value[idx], recording: u } })
+                }
               />
             </div>
           ))}
@@ -1441,13 +1481,20 @@ function Section8Recall({ set, speech, answers, setAnswer, onNext, onBack, secti
                 <div className="flex gap-2">
                   <TextField
                     value={cur.text}
-                    onChange={(e) => setWord(i, { text: e.target.value })}
+                    onChange={(e) => setWord(i, { text: e.target.value, used_cue: cur.used_cue, recording: cur.recording })}
                     placeholder="Nhập từ bạn nhớ…"
+                  />
+                  <RecorderButton
+                    label={`Ghi âm từ ${i + 1}`}
+                    value={cur.recording}
+                    onSaved={(u) => setWord(i, { ...cur, recording: u })}
+                    compact={true}
+                    showPlayback={true}
                   />
                   <button
                     type="button"
                     onClick={() => {
-                      setWord(i, { used_cue: true });
+                      setWord(i, { text: cur.text, used_cue: true, recording: cur.recording });
                       speech.speak(w.cue);
                     }}
                     className="shrink-0 inline-flex items-center gap-1 rounded-xl border-2 border-amber-200 bg-amber-50 px-3 py-2 text-amber-800 font-semibold hover:bg-amber-100"
@@ -1717,83 +1764,20 @@ function ResultsSummary({ set, answers, profile, onRestart, submitStatus }) {
 }
 
 /* =============================================================================
-   IDENTITY — phone (required) + email (optional), then profile screen
-   ========================================================================== */
-function IdentityScreen({ profile, setProfile, onContinue }) {
-  const [error, setError] = useState(null);
-
-  const handleContinue = () => {
-    const phone = profile.phone.trim();
-    if (!phone) {
-      setError("Vui lòng nhập số điện thoại.");
-      return;
-    }
-    setError(null);
-    setProfile({ ...profile, phone });
-    onContinue();
-  };
-
-  return (
-    <div className="moca-setup-screen">
-      <div className="moca-card">
-        <p className="moca-badge">Kiểm tra nhận thức</p>
-        <h1 className="moca-title mb-2">Định danh</h1>
-        <p className="mb-5 text-base text-[var(--moca-muted)] leading-snug">
-          Nhập số điện thoại. Email không bắt buộc.
-        </p>
-
-        <div className="space-y-4">
-          <div>
-            <label className="moca-label" htmlFor="moca-phone">
-              Số điện thoại
-            </label>
-            <TextField
-              id="moca-phone"
-              type="tel"
-              inputMode="tel"
-              autoComplete="tel"
-              value={profile.phone}
-              onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-              placeholder="0901234567"
-            />
-          </div>
-          <div>
-            <label className="moca-label" htmlFor="moca-email">
-              Email <span className="font-normal text-[var(--moca-muted)]">(tuỳ chọn)</span>
-            </label>
-            <TextField
-              id="moca-email"
-              type="email"
-              inputMode="email"
-              autoComplete="email"
-              value={profile.email}
-              onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-              placeholder="email@example.com"
-            />
-          </div>
-        </div>
-
-        {error && (
-          <p className="mt-3 text-sm text-red-600" role="alert">
-            {error}
-          </p>
-        )}
-
-        <button type="button" onClick={handleContinue} className="moca-btn-primary mt-6">
-          Tiếp tục
-        </button>
-      </div>
-    </div>
-  );
-}
-
-/* =============================================================================
    START / PROFILE  (auth bypassed — captures fields needed for grading)
    ========================================================================== */
-function StartScreen({ profile, setProfile, onStart, onBack }) {
+function StartScreen({ profile, setProfile, onStart, onHome }) {
   return (
     <div className="moca-setup-screen">
       <div className="moca-card">
+        <button
+          type="button"
+          onClick={onHome}
+          className="mb-4 flex items-center gap-1 text-sm font-medium text-[var(--moca-primary)] hover:underline"
+        >
+          <ArrowLeft size={16} />
+          Trang chủ
+        </button>
         <p className="moca-badge">Kiểm tra nhận thức</p>
         <h1 className="moca-title mb-2">Bài kiểm tra MoCA</h1>
         <p className="mb-5 text-base text-[var(--moca-muted)] leading-snug">
@@ -1824,11 +1808,6 @@ function StartScreen({ profile, setProfile, onStart, onBack }) {
         </div>
 
         <div className="mt-6 flex flex-col gap-2">
-          {onBack && (
-            <button type="button" onClick={onBack} className="moca-btn-ghost">
-              Quay lại
-            </button>
-          )}
           <button type="button" onClick={onStart} className="moca-btn-primary">
             Bắt đầu
           </button>
@@ -1842,8 +1821,7 @@ function StartScreen({ profile, setProfile, onStart, onBack }) {
    CONTAINER — wizard + progress + state management
    ========================================================================== */
 export default function MocaTestContainer() {
-  const location = useLocation();
-  const entryState = location.state;
+  const navigate = useNavigate();
   const speech = useSpeech("vi-VN");
   const authUser = useAuthStore((s) => s.user);
   const submitSession = useSubmitSession();
@@ -1851,13 +1829,13 @@ export default function MocaTestContainer() {
   const [submitStatus, setSubmitStatus] = useState("idle");
 
   const [profile, setProfile] = useState({
-    phone: entryState?.phone ?? "",
-    email: entryState?.email ?? authUser?.email ?? "",
+    phone: authUser?.id ?? "",
+    email: authUser?.email ?? "",
     patient_name: authUser?.fullName ?? "",
     education_years: 11,
     selected_set_id: Object.keys(QUESTION_BANK)[0],
   });
-  const [phase, setPhase] = useState(entryState?.phone ? "start" : "identity");
+  const [phase, setPhase] = useState("start");
   const [currentStep, setCurrentStep] = useState(1); // 1..9
   const [answers, setAnswers] = useState({});
   const [section3EndTime, setSection3EndTime] = useState(null);
@@ -1883,7 +1861,7 @@ export default function MocaTestContainer() {
     setAnswers({});
     setSection3EndTime(null);
     setCurrentStep(1);
-    setPhase(profile.phone ? "start" : "identity");
+    setPhase("start");
     submitStarted.current = false;
     setSubmitStatus("idle");
   };
@@ -1917,19 +1895,11 @@ export default function MocaTestContainer() {
     <div className="moca-exam">
       {phase === "exam" && <ProgressBar value={progress} currentStep={currentStep} />}
 
-      {phase === "identity" && (
-        <IdentityScreen
-          profile={profile}
-          setProfile={setProfile}
-          onContinue={() => setPhase("start")}
-        />
-      )}
-
       {phase === "start" && (
         <StartScreen
           profile={profile}
           setProfile={setProfile}
-          onBack={() => setPhase("identity")}
+          onHome={() => navigate('/patient')}
           onStart={() => {
             // Randomly assign the test set — the patient never chooses it.
             setProfile((p) => ({ ...p, selected_set_id: pickRandomSetId() }));
@@ -1943,6 +1913,14 @@ export default function MocaTestContainer() {
 
       {phase === "exam" && (
         <div className="moca-exam-body">
+          <button
+            type="button"
+            onClick={() => { if (confirm('Thoát bài kiểm tra? Dữ liệu sẽ không được lưu.')) navigate('/patient'); }}
+            className="mb-3 flex items-center gap-1 text-sm font-medium text-[var(--moca-muted)] hover:text-[var(--moca-primary)]"
+          >
+            <ArrowLeft size={16} />
+            Thoát
+          </button>
           {currentStep === 1 && <Section1Visuospatial {...sectionProps} />}
           {currentStep === 2 && <Section2Naming {...sectionProps} />}
           {currentStep === 3 && (
@@ -1950,7 +1928,7 @@ export default function MocaTestContainer() {
           )}
           {currentStep === 4 && <Section4Attention {...sectionProps} />}
           {currentStep === 5 && <Section5Sentences {...sectionProps} />}
-          {currentStep === 6 && <Section6Fluency {...sectionProps} />}
+          {currentStep === 6 && <Section6Fluency {...sectionProps} />} 
           {currentStep === 7 && <Section7Abstraction {...sectionProps} />}
           {currentStep === 8 && (
             <Section8Recall {...sectionProps} section3EndTime={section3EndTime} />
@@ -1961,6 +1939,14 @@ export default function MocaTestContainer() {
 
       {phase === "results" && (
         <div className="moca-exam-body">
+          <button
+            type="button"
+            onClick={() => navigate('/patient')}
+            className="mb-3 flex items-center gap-1 text-sm font-medium text-[var(--moca-primary)] hover:underline"
+          >
+            <ArrowLeft size={16} />
+            Trang chủ
+          </button>
           <ResultsSummary
             set={set}
             answers={answers}
