@@ -51,7 +51,7 @@ export function PatientHomePage() {
           </p>
         )}
         {isError && (
-          <p className="text-xs text-error">API offline — mock data</p>
+          <p className="text-xs text-error">Không kết nối được API</p>
         )}
       </section>
 

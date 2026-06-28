@@ -1,0 +1,54 @@
+# VM / server deploy — pull from Docker Hub (no local build).
+# Watchtower auto-updates containers labeled watchtower.enable=true.
+#
+# On the server:
+#   cp backend/.env.example .env   # edit DB_*, REDIS_*, MINIO_*
+#   docker login -u duylongcontainer
+#   docker compose -f compose.prod.yml pull
+#   docker compose -f compose.prod.yml up -d
+#
+# After you push new :latest tags from your laptop:
+#   Watchtower pulls + restarts backend/frontend (within poll interval).
+
+services:
+  backend:
+    image: duylongcontainer/moca-backend:latest
+    container_name: moca-backend
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8080/api/health"]
+      interval: 15s
+      timeout: 5s
+      start_period: 90s
+      retries: 5
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+
+  frontend:
+    image: duylongcontainer/moca-frontend:latest
+    container_name: moca-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "3000:80"
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+
+  watchtower:
+    image: containrrr/watchtower:1.7.1
+    container_name: moca-watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      WATCHTOWER_POLL_INTERVAL: 300
+      WATCHTOWER_CLEANUP: "true"
+      WATCHTOWER_LABEL_ENABLE: "true"
+      # Private Hub repos only — set in server .env:
+      # REPO_USER: duylongcontainer
+      # REPO_PASS: ${DOCKERHUB_TOKEN}

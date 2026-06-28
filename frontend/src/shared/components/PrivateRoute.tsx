@@ -9,7 +9,10 @@ type Props = {
 export function PrivateRoute({ roles }: Props) {
   const user = useAuthStore((s) => s.user)
 
-  if (!user) return <Navigate to="/login" replace />
+  if (!user) {
+    const loginPath = roles?.includes('PATIENT') ? '/entry' : '/login'
+    return <Navigate to={loginPath} replace />
+  }
   if (roles && !roles.includes(user.role)) {
     const home =
       user.role === 'PATIENT'

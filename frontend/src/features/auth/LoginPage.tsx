@@ -8,9 +8,9 @@ const inputClass =
 
 export function LoginPage() {
   const user = useAuthStore((s) => s.user)
-  const login = useAuthStore((s) => s.login)
+  const doctorLogin = useAuthStore((s) => s.doctorLogin)
 
-  const [email, setEmail] = useState('patient.nguyen@moca.local')
+  const [email, setEmail] = useState('doctor.tran@moca.local')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -31,7 +31,7 @@ export function LoginPage() {
     setError(null)
     setSubmitting(true)
     try {
-      await login(email.trim(), password)
+      await doctorLogin(email.trim(), password)
     } catch {
       setError('Email hoặc mật khẩu không đúng.')
     } finally {
@@ -65,7 +65,7 @@ export function LoginPage() {
                 id="email"
                 type="email"
                 className={inputClass}
-                placeholder="patient.nguyen@moca.local"
+                placeholder="doctor.tran@moca.local"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"

@@ -10,6 +10,7 @@ import { PatientAppointmentsPage } from './features/patient/PatientAppointmentsP
 import { PatientDoctorsPage } from './features/patient/PatientDoctorsPage'
 import { PatientHomePage } from './features/patient/PatientHomePage'
 import { PatientResultsPage } from './features/patient/PatientResultsPage'
+import { PatientSettingsPage } from './features/patient/PatientSettingsPage'
 import { PatientTestPage } from './features/patient/PatientTestPage'
 import { PrivateRoute } from './shared/components/PrivateRoute'
 import { LandingPage } from './features/patient/LandingPage'
@@ -27,6 +28,7 @@ export function AppRouter() {
           <Route path="/patient/results" element={<PatientResultsPage />} />
           <Route path="/patient/appointments" element={<PatientAppointmentsPage />} />
           <Route path="/patient/doctors" element={<PatientDoctorsPage />} />
+          <Route path="/patient/settings" element={<PatientSettingsPage />} />
         </Route>
 
         <Route element={<PrivateRoute roles={['DOCTOR']} />}>

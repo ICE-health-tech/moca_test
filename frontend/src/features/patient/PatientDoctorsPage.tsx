@@ -60,7 +60,12 @@ export function PatientDoctorsPage() {
                 {d.email && (
                   <div className="flex items-center gap-2 text-on-surface-variant">
                     <Mail size={14} className="shrink-0" />
-                    <span className="text-primary">{d.email}</span>
+                    <a
+                      href={`mailto:${d.email}`}
+                      className="!min-h-0 py-0 text-sm leading-none text-primary hover:underline break-all"
+                    >
+                      {d.email}
+                    </a>
                   </div>
                 )}
               </div>

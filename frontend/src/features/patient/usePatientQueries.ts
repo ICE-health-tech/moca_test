@@ -6,7 +6,9 @@ import {
   listPatientAppointments,
   listPatientSessions,
   submitTestSession,
+  updatePatientProfile,
   type SubmitSessionPayload,
+  type UpdatePatientProfilePayload,
 } from './patient.api'
 
 export function usePatientSessions() {
@@ -53,5 +55,16 @@ export function useSubmitSession() {
         })
       }
     },
+  })
+}
+
+export function useUpdatePatientProfile() {
+  const patientId = useAuthStore((s) => s.user?.id)
+  const updateUser = useAuthStore((s) => s.updateUser)
+
+  return useMutation({
+    mutationFn: (payload: UpdatePatientProfilePayload) =>
+      updatePatientProfile(patientId!, payload),
+    onSuccess: (user) => updateUser(user),
   })
 }

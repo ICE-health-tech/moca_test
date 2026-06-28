@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { login as loginApi } from '../features/auth/auth.api'
+import { doctorLogin as doctorLoginApi, patientLogin as patientLoginApi } from '../features/auth/auth.api'
 
 export type UserRole = 'PATIENT' | 'DOCTOR' | 'ADMIN'
 
@@ -8,15 +8,21 @@ export type AuthUser = {
   id: string
   fullName: string
   email: string
+  phoneNumber: string
   role: UserRole
+  gender?: string
+  dateOfBirth?: string | null
+  educationYears?: number | null
 }
 
 type AuthState = {
   user: AuthUser | null
   token: string | null
-  login: (email: string, password: string) => Promise<void>
-  /** Lightweight patient login — phone only, no JWT. Enables PrivateRoute access. */
-  patientLogin: (phone: string) => void
+  /** Patient: phone only → POST /api/auth/patient/login */
+  patientLogin: (phone: string) => Promise<void>
+  /** Doctor / admin: email + password → POST /api/auth/doctor/login */
+  doctorLogin: (email: string, password: string) => Promise<void>
+  updateUser: (user: AuthUser) => void
   logout: () => void
 }
 
@@ -25,15 +31,15 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       user: null,
       token: null,
-      login: async (email, password) => {
-        const { user, accessToken } = await loginApi(email, password)
+      patientLogin: async (phone) => {
+        const { user, accessToken } = await patientLoginApi(phone)
         set({ user, token: accessToken })
       },
-      patientLogin: (phone) =>
-        set({
-          user: { id: phone, fullName: phone, email: `${phone}@patient.local`, role: 'PATIENT' },
-          token: null,
-        }),
+      doctorLogin: async (email, password) => {
+        const { user, accessToken } = await doctorLoginApi(email, password)
+        set({ user, token: accessToken })
+      },
+      updateUser: (user) => set({ user }),
       logout: () => set({ user: null, token: null }),
     }),
     { name: 'moca-auth' },

@@ -38,6 +38,9 @@ public class UserEntity {
     @Column(name = "full_name", nullable = false)
     private String fullName;
 
+    @Column(name = "password_hash", nullable = false)
+    private String passwordHash;
+
     @Column(name = "education_years")
     private Integer educationYears;
 
@@ -58,14 +61,15 @@ public class UserEntity {
     }
 
     // Comprehensive constructor
-    public UserEntity(UUID id, String email, String phoneNumber, UserRole role, 
-                      String fullName, Integer educationYears, String gender, 
+    public UserEntity(UUID id, String email, String phoneNumber, UserRole role,
+                      String fullName, String passwordHash, Integer educationYears, String gender,
                       LocalDate dateOfBirth, Instant createdAt, Instant updatedAt) {
         this.id = id;
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.role = role;
         this.fullName = fullName;
+        this.passwordHash = passwordHash;
         this.educationYears = educationYears;
         this.gender = gender;
         this.dateOfBirth = dateOfBirth;
@@ -79,6 +83,7 @@ public class UserEntity {
     public String getPhoneNumber() { return phoneNumber; }
     public UserRole getRole() { return role; }
     public String getFullName() { return fullName; }
+    public String getPasswordHash() { return passwordHash; }
     public Integer getEducationYears() { return educationYears; }
     public String getGender() { return gender; }
     public LocalDate getDateOfBirth() { return dateOfBirth; }
@@ -89,6 +94,16 @@ public class UserEntity {
     public void updateContactInfo(String email, String phoneNumber) {
         this.email = email;
         this.phoneNumber = phoneNumber;
+        this.updatedAt = Instant.now();
+    }
+
+    public void updateProfile(String fullName, String email, String gender,
+                              LocalDate dateOfBirth, Integer educationYears) {
+        this.fullName = fullName;
+        this.email = email == null || email.isBlank() ? null : email.trim();
+        this.gender = gender == null || gender.isBlank() ? null : gender.trim();
+        this.dateOfBirth = dateOfBirth;
+        this.educationYears = educationYears;
         this.updatedAt = Instant.now();
     }
 }

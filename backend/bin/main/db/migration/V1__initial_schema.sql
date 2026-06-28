@@ -17,7 +17,8 @@ CREATE TABLE users (
     gender          VARCHAR(20),
     date_of_birth   DATE,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    phone_number    VARCHAR(20) NOT NULL UNIQUE
 );
 
 CREATE INDEX idx_users_role ON users (role);

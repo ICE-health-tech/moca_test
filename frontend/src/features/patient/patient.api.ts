@@ -1,4 +1,6 @@
 import { api } from '../../shared/lib/axios'
+import { mapAuthUserDto } from '../auth/auth.api'
+import type { AuthUser } from '../../stores/authStore'
 import type {
   Appointment,
   DoctorOption,
@@ -44,9 +46,9 @@ const MOCK_APPOINTMENTS: Appointment[] = [
 ]
 
 const MOCK_DOCTORS: DoctorOption[] = [
-  { id: 'd1', name: 'BS. Trần Minh', specialty: 'Thần kinh', phone: '0911111111', email: 'minh.tran@bvtw.vn', workplace: 'Bệnh viện Trung ương', experience: '15 năm', isCurrent: true },
-  { id: 'd2', name: 'BS. Lê Hương', specialty: 'Lão khoa', phone: '0922222222', email: 'huong.le@bvtw.vn', workplace: 'Bệnh viện Trung ương', experience: '10 năm', isCurrent: false },
-  { id: 'd3', name: 'BS. Phạm Quân', specialty: 'Tâm thần', phone: '0933333333', email: 'quan.pham@bvtw.vn', workplace: 'Bệnh viện Tâm thần', experience: '8 năm', isCurrent: false },
+  { id: 'd1', name: 'BS. Trần Minh', specialty: 'Thần kinh', phone: '0911111111', email: 'doctor.tran@moca.local', workplace: 'Bệnh viện Trung ương', experience: '15 năm', isCurrent: true },
+  { id: 'd2', name: 'BS. Lê Hương', specialty: 'Lão khoa', phone: '0922222222', email: 'doctor.le@moca.local', workplace: 'Bệnh viện Trung ương', experience: '10 năm', isCurrent: false },
+  { id: 'd3', name: 'BS. Phạm Quân', specialty: 'Tâm thần', phone: '0933333333', email: 'doctor.quan@moca.local', workplace: 'Bệnh viện Tâm thần', experience: '8 năm', isCurrent: false },
 ]
 
 export async function listPatientSessions(
@@ -77,6 +79,22 @@ export async function listDoctorOptions(
     `/api/patient/${patientId}/doctors`,
   )
   return data
+}
+
+export type UpdatePatientProfilePayload = {
+  fullName: string
+  email?: string
+  gender?: string
+  dateOfBirth?: string | null
+  educationYears?: number | null
+}
+
+export async function updatePatientProfile(
+  patientId: string,
+  payload: UpdatePatientProfilePayload,
+): Promise<AuthUser> {
+  const { data } = await api.patch(`/api/patient/${patientId}/profile`, payload)
+  return mapAuthUserDto(data)
 }
 
 export type SubmitSessionPayload = {

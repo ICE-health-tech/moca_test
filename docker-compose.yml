@@ -1,20 +1,4 @@
 services:
-  # Optional — only when you have no remote MinIO. Start with:
-  #   docker compose --profile local-minio up -d
-  minio:
-    profiles: ["local-minio"]
-    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
-    container_name: moca-minio
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: moca_minio
-      MINIO_ROOT_PASSWORD: moca_minio_dev
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    volumes:
-      - moca_minio_data:/data
-
   postgres:
     image: postgres:16-alpine
     container_name: moca-postgres
@@ -31,6 +15,55 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  backend:
+    build: ./backend
+    container_name: moca-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: moca
+      DB_USER: moca
+      DB_PASSWORD: moca_dev
+      SERVER_PORT: 8080
+      MINIO_ENABLED: "false"
+      REDIS_ENABLED: "false"
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8080/api/health"]
+      interval: 15s
+      timeout: 5s
+      start_period: 90s
+      retries: 5
+
+  frontend:
+    build: ./frontend
+    container_name: moca-frontend
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "3000:80"
+
+  # Optional — only when you have no remote MinIO. Start with:
+  #   docker compose --profile local-minio up -d
+  minio:
+    profiles: ["local-minio"]
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    container_name: moca-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: moca_minio
+      MINIO_ROOT_PASSWORD: moca_minio_dev
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - moca_minio_data:/data
 
 volumes:
   moca_pg_data:

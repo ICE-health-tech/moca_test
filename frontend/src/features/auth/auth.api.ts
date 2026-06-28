@@ -1,31 +1,60 @@
 import { api } from '../../shared/lib/axios'
 import type { AuthUser, UserRole } from '../../stores/authStore'
 
+export type AuthUserDto = {
+  id: string
+  email: string
+  phoneNumber: string
+  fullName: string
+  role: UserRole
+  gender?: string
+  dateOfBirth?: string | null
+  educationYears?: number | null
+}
+
 type LoginResponse = {
   accessToken: string
-  user: {
-    id: string
-    email: string
-    fullName: string
-    role: UserRole
+  user: AuthUserDto
+}
+
+export function mapAuthUserDto(data: AuthUserDto): AuthUser {
+  return {
+    id: data.id,
+    email: data.email,
+    phoneNumber: data.phoneNumber,
+    fullName: data.fullName,
+    role: data.role,
+    gender: data.gender || undefined,
+    dateOfBirth: data.dateOfBirth ?? null,
+    educationYears: data.educationYears ?? null,
   }
 }
 
-export async function login(
+function mapLogin(data: LoginResponse): { user: AuthUser; accessToken: string } {
+  return {
+    accessToken: data.accessToken,
+    user: mapAuthUserDto(data.user),
+  }
+}
+
+/** Patient — phone only, no password. */
+export async function patientLogin(
+  phone: string,
+): Promise<{ user: AuthUser; accessToken: string }> {
+  const { data } = await api.post<LoginResponse>('/api/auth/patient/login', {
+    phone_number: phone,
+  })
+  return mapLogin(data)
+}
+
+/** Doctor / admin — email + password. */
+export async function doctorLogin(
   email: string,
   password: string,
 ): Promise<{ user: AuthUser; accessToken: string }> {
-  const { data } = await api.post<LoginResponse>('/api/auth/login', {
+  const { data } = await api.post<LoginResponse>('/api/auth/doctor/login', {
     email,
     password,
   })
-  return {
-    accessToken: data.accessToken,
-    user: {
-      id: data.user.id,
-      email: data.user.email,
-      fullName: data.user.fullName,
-      role: data.user.role,
-    },
-  }
+  return mapLogin(data)
 }

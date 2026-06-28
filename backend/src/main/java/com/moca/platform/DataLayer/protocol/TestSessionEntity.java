@@ -39,11 +39,23 @@ public class TestSessionEntity {
     @Column(name = "auto_score")
     private Integer autoScore;
 
+    @Column(name = "review_score")
+    private Integer reviewScore;
+
     @Column(name = "final_score")
     private Integer finalScore;
 
+    @Column(name = "education_bonus")
+    private Integer educationBonus;
+
     @Column(name = "submitted_at")
     private Instant submittedAt;
+
+    @Column(name = "reviewed_at")
+    private Instant reviewedAt;
+
+    @Column(name = "reviewed_by")
+    private UUID reviewedBy;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
@@ -106,5 +118,23 @@ public class TestSessionEntity {
 
     public String getClassification() {
         return classification;
+    }
+
+    public UUID getDoctorId() {
+        return doctorId;
+    }
+
+    public Integer getReviewScore() {
+        return reviewScore;
+    }
+
+    /** 3 approve — set final score and mark reviewed */
+    public void finalizeReview(int finalScore, String classification, UUID reviewedBy, Instant reviewedAt) {
+        this.finalScore = finalScore;
+        this.reviewScore = finalScore;
+        this.classification = classification;
+        this.reviewedBy = reviewedBy;
+        this.reviewedAt = reviewedAt;
+        this.status = TestSessionStatus.FINALIZED;
     }
 }
