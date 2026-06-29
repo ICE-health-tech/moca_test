@@ -1,8 +1,10 @@
 # VM / server deploy — pull from Docker Hub (no local build).
-# Proxmox VMs are usually linux/amd64 — build with buildx before push (see below).
+# CI pushes images on every push to main (see .github/workflows/docker-publish.yml).
+# Proxmox VMs are usually linux/amd64 — GitHub Actions builds that platform automatically.
 #
-# On Mac (Apple Silicon) push amd64 images for the server:
-#   docker buildx create --use --name moca-builder 2>/dev/null || docker buildx use moca-builder
+# GitHub secrets (one-time): DOCKERHUB_USERNAME, DOCKERHUB_TOKEN
+#
+# Manual push (optional):
 #   docker buildx build --platform linux/amd64 -t duylongcontainer/moca-backend:latest --push ./backend
 #   docker buildx build --platform linux/amd64 -t duylongcontainer/moca-frontend:latest --push ./frontend
 #
