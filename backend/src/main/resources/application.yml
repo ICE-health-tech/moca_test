@@ -1,12 +1,23 @@
 spring:
   application:
     name: moca-platform
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:moca-test-db}
+    username: ${DB_USER:duylong}
+    password: ${DB_PASSWORD:duylongadminpass}
+    hikari:
+      maximum-pool-size: 10
   jpa:
     open-in-view: false
+    hibernate:
+      ddl-auto: validate
     properties:
       hibernate:
         jdbc:
           time_zone: UTC
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
   data:
     redis:
       repositories:
@@ -20,3 +31,13 @@ management:
     web:
       exposure:
         include: health
+
+redis:
+  enabled: ${REDIS_ENABLED:false}
+  host: ${REDIS_HOST:localhost}
+  port: ${REDIS_PORT:6379}
+  password: ${REDIS_PASSWORD:}
+  ssl: ${REDIS_SSL:false}
+
+minio:
+  enabled: ${MINIO_ENABLED:false}
