@@ -196,14 +196,16 @@ function AudioGuide({ text, speech, autoLines }) {
         onClick={() => (speech.speaking ? speech.cancel() : speech.speak(lines))}
         className="moca-btn-primary"
         style={{ minHeight: 34, fontSize: "0.8125rem" }}
-        disabled={!speech.supported}
+        disabled={!speech.supported || !speech.vietnameseVoiceAvailable}
         aria-label="Phát hướng dẫn bằng giọng nói"
       >
         {speech.speaking ? <VolumeX size={18} /> : <Volume2 size={18} />}
         {speech.speaking ? "Dừng nghe" : "Nghe hướng dẫn"}
       </button>
-      {!speech.supported && (
-        <p className="mt-3 text-base text-[var(--moca-muted)]">Vui lòng đọc hướng dẫn phía trên.</p>
+      {(!speech.supported || !speech.vietnameseVoiceAvailable) && (
+        <p className="mt-3 text-base text-[var(--moca-muted)]">
+          Thiết bị chưa cài giọng đọc tiếng Việt — vui lòng đọc hướng dẫn phía trên.
+        </p>
       )}
     </div>
   );
@@ -211,7 +213,10 @@ function AudioGuide({ text, speech, autoLines }) {
 
 function StepShell({ title, badge, instruction, autoLines, speech, children, footer }) {
   useEffect(() => {
-    if (instruction && speech.supported) speech.speak(autoLines || instruction);
+    // LOGIC: only auto-read when a real Vietnamese voice exists — otherwise the
+    // browser falls back to an English voice, which confuses elderly patients.
+    if (instruction && speech.supported && speech.vietnameseVoiceAvailable)
+      speech.speak(autoLines || instruction);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [title]);
 
@@ -622,6 +627,9 @@ function useMockRecorder() {
   }, []);
 
   const start = useCallback(async (onComplete) => {
+    // LOGIC: stop any instruction being read aloud first, so the speaker's TTS
+    // does not bleed into the microphone recording.
+    try { window.speechSynthesis?.cancel(); } catch (_) {}
     // Try a real recording; gracefully simulate if mic/API unavailable.
     try {
       if (!navigator.mediaDevices || !window.MediaRecorder) throw new Error("unsupported");
@@ -669,6 +677,7 @@ function useSentenceRecorder() {
   }, []);
 
   const start = useCallback(async (onComplete) => {
+    try { window.speechSynthesis?.cancel(); } catch (_) {}
     try {
       if (!navigator.mediaDevices || !window.MediaRecorder) throw new Error("unsupported");
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -790,9 +799,16 @@ function SentenceRecorder({ label, expectedSentence, value, onSaved }) {
   );
 }
 
-function RecorderButton({ label, value, onSaved, compact = false, showPlayback = true, variant = "default" }) {
+function RecorderButton({ label, value, onSaved, onStart, compact = false, showPlayback = true, variant = "default" }) {
   const rec = useMockRecorder();
   const [playing, setPlaying] = useState(false);
+
+  // LOGIC: sections like Fluency need their countdown to begin the moment the
+  // patient starts recording — onStart lets the parent hook into that moment.
+  const beginRecording = () => {
+    if (onStart) onStart();
+    rec.start((r) => onSaved(r.blobUrl || `recorded:${label}`));
+  };
 
   const variantStyles = {
     default: "bg-blue-600 text-black hover:bg-blue-700",
@@ -808,7 +824,7 @@ function RecorderButton({ label, value, onSaved, compact = false, showPlayback =
         {!rec.recording ? (
           <button
             type="button"
-            onClick={() => rec.start((r) => onSaved(r.blobUrl || `recorded:${label}`))}
+            onClick={beginRecording}
             className="min-h-[42px] min-w-[42px] rounded-2xl bg-red-600 !text-white hover:bg-red-700 p-3"
             title={label}
             aria-label={label}
@@ -863,7 +879,7 @@ function RecorderButton({ label, value, onSaved, compact = false, showPlayback =
         {!rec.recording ? (
           <button
             type="button"
-            onClick={() => rec.start((r) => onSaved(r.blobUrl || `recorded:${label}`))}
+            onClick={beginRecording}
             className={`min-h-[60px] flex-1 inline-flex items-center justify-center gap-3 rounded-2xl px-6 py-4 text-white text-xl font-bold ${buttonClass}`}
           >
             <Mic size={20} /> Bấm để ghi âm
@@ -1275,7 +1291,13 @@ function Section6Fluency({ set, speech, answers, setAnswer, onNext, onBack }) {
 
   const validWords = countWords(text);
 
+  const runningRef = useRef(false);
+
   const start = () => {
+    // LOGIC: guard so pressing the record button after "Bắt đầu" (or twice)
+    // never spawns a second interval racing the first one.
+    if (runningRef.current) return;
+    runningRef.current = true;
     setRunning(true);
     setFinished(false);
     setSeconds(60);
@@ -1283,6 +1305,7 @@ function Section6Fluency({ set, speech, answers, setAnswer, onNext, onBack }) {
       setSeconds((s) => {
         if (s <= 1) {
           clearInterval(intervalRef.current);
+          runningRef.current = false;
           setRunning(false);
           setFinished(true);
           return 0;
@@ -1337,11 +1360,14 @@ function Section6Fluency({ set, speech, answers, setAnswer, onNext, onBack }) {
           </p>
         )}
         <div className="mt-5">
-          <p className="text-sm font-semibold text-gray-600 mb-3">Ghi âm phần lưu loát của bạn:</p>
+          <p className="text-sm font-semibold text-gray-600 mb-3">
+            Hoặc bấm ghi âm — đồng hồ 60 giây sẽ tự chạy:
+          </p>
           <RecorderButton
             label="Ghi âm lưu loát"
             value={answers.section_6_recording}
             onSaved={(u) => setAnswer("section_6_recording", u)}
+            onStart={start}
             showPlayback={true}
             variant="secondary"
           />
@@ -1380,11 +1406,16 @@ function Section7Abstraction({ set, speech, answers, setAnswer, onNext, onBack }
               <div className="flex items-start justify-between gap-3 mb-3">
                 <p className="text-xl font-bold text-gray-900">{item.pair}</p>
                 <button
-                  onClick={() => speech.speak(`${item.pair} giống nhau ở điểm nào?`)}
+                  type="button"
+                  onClick={() =>
+                    speech.speaking
+                      ? speech.cancel()
+                      : speech.speak(`${item.pair} giống nhau ở điểm nào?`)
+                  }
                   className="shrink-0 rounded-xl border-2 border-gray-200 p-3 text-gray-600 hover:bg-gray-50"
-                  aria-label="Nghe câu hỏi"
+                  aria-label={speech.speaking ? "Dừng nghe" : "Nghe câu hỏi"}
                 >
-                  <Volume2 size={22} />
+                  {speech.speaking ? <VolumeX size={22} /> : <Volume2 size={22} />}
                 </button>
               </div>
               <TextFieldWithRecording
@@ -1696,7 +1727,7 @@ function gradeTest(set, answers, educationYears) {
   return { rows, autoTotal, bonus, provisional, reviewMax, classification, tone };
 }
 
-function ResultsSummary({ set, answers, profile, onRestart, submitStatus }) {
+function ResultsSummary({ set, answers, profile, onRestart, submitStatus, onRetrySubmit }) {
   const result = useMemo(
     () => gradeTest(set, answers, profile.education_years),
     [set, answers, profile.education_years]
@@ -1710,6 +1741,14 @@ function ResultsSummary({ set, answers, profile, onRestart, submitStatus }) {
   return (
     <div className="moca-shell py-8 pb-12">
       <div className="moca-card">
+        {submitStatus === "success" && (
+          <div className="mb-6 rounded-2xl bg-[#f0fdf4] border border-[#bbf7d0] px-5 py-4 text-center">
+            <p className="text-xl font-bold text-[#166534]">Cảm ơn bạn đã tham gia bài kiểm tra!</p>
+            <p className="mt-1 text-base text-[#15803d]">
+              Bài làm đã được gửi — bác sĩ sẽ duyệt và thông báo kết quả chính thức.
+            </p>
+          </div>
+        )}
         <p className="moca-badge">Hoàn thành</p>
         <h1 className="moca-title mb-1">Kết quả tạm tính</h1>
         <p className="mb-8 text-base text-[var(--moca-muted)]">
@@ -1749,9 +1788,21 @@ function ResultsSummary({ set, answers, profile, onRestart, submitStatus }) {
         </div>
 
         <div className="mt-6 rounded-2xl bg-[var(--moca-fill)] px-4 py-3.5 text-base text-[var(--moca-muted)] leading-relaxed">
+          {submitStatus === "idle" && "Đang chuẩn bị gửi bài làm…"}
           {submitStatus === "pending" && "Đang gửi bài làm…"}
           {submitStatus === "success" && "Bài làm đã gửi · chờ bác sĩ duyệt."}
-          {submitStatus === "error" && "Không gửi được — kiểm tra kết nối máy chủ."}
+          {submitStatus === "error" && (
+            <span className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <span className="text-[#b91c1c]">Không gửi được — kiểm tra kết nối máy chủ.</span>
+              <button
+                type="button"
+                onClick={onRetrySubmit}
+                className="shrink-0 rounded-xl border-2 border-[var(--moca-primary)] px-4 py-2 font-semibold text-[var(--moca-primary)] hover:bg-blue-50"
+              >
+                Gửi lại
+              </button>
+            </span>
+          )}
           {submitStatus === "skipped" && "Đăng nhập để lưu bài làm."}
         </div>
 
@@ -1866,13 +1917,7 @@ export default function MocaTestContainer() {
     setSubmitStatus("idle");
   };
 
-  useEffect(() => {
-    if (phase !== "results" || submitStarted.current) return;
-    if (!authUser?.id) {
-      setSubmitStatus("skipped");
-      return;
-    }
-    submitStarted.current = true;
+  const doSubmit = useCallback(() => {
     setSubmitStatus("pending");
     submitSession.mutate(
       {
@@ -1885,7 +1930,17 @@ export default function MocaTestContainer() {
         onError: () => setSubmitStatus("error"),
       },
     );
-  }, [phase, authUser?.id, profile.selected_set_id, profile.education_years, answers, submitSession]);
+  }, [profile.selected_set_id, profile.education_years, answers, submitSession]);
+
+  useEffect(() => {
+    if (phase !== "results" || submitStarted.current) return;
+    if (!authUser?.id) {
+      setSubmitStatus("skipped");
+      return;
+    }
+    submitStarted.current = true;
+    doSubmit();
+  }, [phase, authUser?.id, doSubmit]);
 
   const progress = phase === "results" ? 100 : ((currentStep - 1) / 9) * 100;
 
@@ -1953,6 +2008,7 @@ export default function MocaTestContainer() {
             profile={profile}
             onRestart={restart}
             submitStatus={submitStatus}
+            onRetrySubmit={doSubmit}
           />
         </div>
       )}

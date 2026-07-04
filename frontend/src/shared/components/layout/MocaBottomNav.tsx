@@ -1,4 +1,4 @@
-import { BarChart3, Home, LogOut, UserRound } 
+import { BarChart3, Home, LogOut, UserRound } from 'lucide-react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../../stores/authStore'
 

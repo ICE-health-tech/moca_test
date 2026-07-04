@@ -282,7 +282,7 @@ export function LandingPage() {
 
       {/* ── PHONE LOGIN SHEET ── */}
       {phoneOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-[var(--stitch-margin-mobile)]">
           <button
             type="button"
             className="absolute inset-0"
@@ -291,7 +291,7 @@ export function LandingPage() {
           />
           <form
             onSubmit={(e) => { e.preventDefault(); handleContinue() }}
-            className="relative w-full max-w-lg rounded-t-3xl border border-outline-variant bg-surface-container-lowest p-6 shadow-xl"
+            className="relative w-full max-w-lg rounded-3xl border border-outline-variant bg-surface-container-lowest p-6 shadow-xl"
           >
             <div className="mxb-4 flex items-center justify-between">
               <h3 className="text-xl font-bold text-on-surface">Định danh bệnh nhân</h3>
