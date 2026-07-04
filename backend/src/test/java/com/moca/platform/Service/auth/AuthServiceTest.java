@@ -39,6 +39,9 @@ class AuthUseCaseImplTest {
     UserRepository users;
 
     @Mock
+    com.moca.platform.DataLayer.protocol.doctor.DoctorProfileRepository doctorProfiles;
+
+    @Mock
     PasswordEncoder passwordEncoder;
 
     @Mock

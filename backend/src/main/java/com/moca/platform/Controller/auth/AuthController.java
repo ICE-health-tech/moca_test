@@ -1,6 +1,7 @@
 package com.moca.platform.Controller.auth;
 
 import com.moca.platform.Dto.auth.DoctorLoginRequest;
+import com.moca.platform.Dto.auth.DoctorSignupRequest;
 import com.moca.platform.Dto.auth.LoginResponse;
 import com.moca.platform.Dto.auth.PatientLoginRequest;
 import com.moca.platform.Service.auth.AuthUseCase;
@@ -31,5 +32,11 @@ public class AuthController {
     @PostMapping("/doctor/login")
     public LoginResponse doctorLogin(@Valid @RequestBody DoctorLoginRequest request) {
         return auth.doctorLogin(request.email(), request.password());
+    }
+
+    /** Doctor: register with email + password → JWT ngay sau khi tạo. */
+    @PostMapping("/doctor/signup")
+    public LoginResponse doctorSignup(@Valid @RequestBody DoctorSignupRequest request) {
+        return auth.doctorSignup(request);
     }
 }

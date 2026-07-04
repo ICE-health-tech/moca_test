@@ -3,7 +3,10 @@ package com.moca.platform.Service.auth;
 import com.moca.platform.DataLayer.protocol.auth.UserEntity;
 import com.moca.platform.DataLayer.protocol.auth.UserRepository;
 import com.moca.platform.DataLayer.protocol.auth.UserRole;
+import com.moca.platform.DataLayer.protocol.doctor.DoctorProfileEntity;
+import com.moca.platform.DataLayer.protocol.doctor.DoctorProfileRepository;
 import com.moca.platform.Dto.auth.AuthUserDto;
+import com.moca.platform.Dto.auth.DoctorSignupRequest;
 import com.moca.platform.Dto.auth.LoginResponse;
 import com.moca.platform.SecurityLayer.JwtService;
 
@@ -14,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
@@ -22,11 +26,17 @@ public class AuthUseCaseImpl implements AuthUseCase {
     private static final Logger log = LoggerFactory.getLogger(AuthUseCaseImpl.class);
 
     private final UserRepository users;
+    private final DoctorProfileRepository doctorProfiles;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwt;
 
-    public AuthUseCaseImpl(UserRepository users, PasswordEncoder passwordEncoder, JwtService jwt) {
+    public AuthUseCaseImpl(
+            UserRepository users,
+            DoctorProfileRepository doctorProfiles,
+            PasswordEncoder passwordEncoder,
+            JwtService jwt) {
         this.users = users;
+        this.doctorProfiles = doctorProfiles;
         this.passwordEncoder = passwordEncoder;
         this.jwt = jwt;
     }
@@ -59,6 +69,45 @@ public class AuthUseCaseImpl implements AuthUseCase {
         }
 
         return tokenResponse(user);
+    }
+
+    /** LOGIC: Doctor signs up with email + password.
+     *    First → reject if the email is already taken (409).
+     *    Then → save the user with a hashed password and DOCTOR role,
+     *           plus an active doctor profile (specialty, license).
+     *    So → the new doctor can log in right away and appears in lists. */
+    @Override
+    @Transactional
+    public LoginResponse doctorSignup(DoctorSignupRequest request) {
+        String email = request.email().trim();
+        if (users.findByEmailIgnoreCase(email).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email đã được đăng ký");
+        }
+
+        Instant now = Instant.now();
+        UserEntity user = users.save(new UserEntity(
+                null,
+                email,
+                null,
+                UserRole.DOCTOR,
+                request.fullName().trim(),
+                passwordEncoder.encode(request.password()),
+                null,
+                null,
+                null,
+                now,
+                now));
+
+        doctorProfiles.save(DoctorProfileEntity.create(
+                user.getId(),
+                blankToNull(request.specialty()),
+                blankToNull(request.licenseNumber())));
+
+        return tokenResponse(user);
+    }
+
+    private static String blankToNull(String s) {
+        return s == null || s.isBlank() ? null : s.trim();
     }
 
     private UserEntity createPatient(String phone) {
