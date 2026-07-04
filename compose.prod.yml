@@ -37,9 +37,15 @@ services:
     platform: linux/amd64
     container_name: moca-backend
     restart: unless-stopped
-    env_file: backend/.env
     environment:
       SPRING_PROFILES_ACTIVE: prod
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: moca-test-db
+      DB_USER: duylong
+      DB_PASSWORD: duylongadminpass
+      MINIO_ENABLED: "false"
+      REDIS_ENABLED: "false"
     depends_on:
       postgres:
         condition: service_healthy
