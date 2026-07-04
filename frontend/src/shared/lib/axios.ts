@@ -7,9 +7,12 @@ export const api = axios.create({
 })
 
 api.interceptors.request.use((config) => {
-  const token = useAuthStore.getState().token
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
+  const isPublicAuth = config.url?.startsWith('/api/auth/')
+  if (!isPublicAuth) {
+    const token = useAuthStore.getState().token
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
   }
   return config
 })

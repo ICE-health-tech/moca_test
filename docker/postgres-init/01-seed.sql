@@ -28,7 +28,7 @@ END $$;
 CREATE TABLE IF NOT EXISTS users (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email           VARCHAR(255) UNIQUE,
-    phone_number    VARCHAR(20) UNIQUE,
+    phone_number    VARCHAR(20) UNIQUE,  -- optional: doctors/admins use email only
     password_hash   VARCHAR(255) NOT NULL,
     role            user_role NOT NULL,
     full_name       VARCHAR(255) NOT NULL,
@@ -38,6 +38,10 @@ CREATE TABLE IF NOT EXISTS users (
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Align with Flyway V4: phone required only for patient login
+ALTER TABLE users ALTER COLUMN phone_number DROP NOT NULL;
+ALTER TABLE users ALTER COLUMN email DROP NOT NULL;
 
 CREATE TABLE IF NOT EXISTS doctor_profiles (
     user_id         UUID PRIMARY KEY REFERENCES users (id) ON DELETE CASCADE,

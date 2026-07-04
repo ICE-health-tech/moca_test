@@ -29,13 +29,13 @@ public class AuthController {
     }
 
     /** Doctor / admin: email + password. */
-    @PostMapping("/doctor/login")
+    @PostMapping({"/doctor/login", "/staff/login"})
     public LoginResponse doctorLogin(@Valid @RequestBody DoctorLoginRequest request) {
         return auth.doctorLogin(request.email(), request.password());
     }
 
     /** Doctor: register with email + password → JWT ngay sau khi tạo. */
-    @PostMapping("/doctor/signup")
+    @PostMapping({"/doctor/signup", "/staff/signup"})
     public LoginResponse doctorSignup(@Valid @RequestBody DoctorSignupRequest request) {
         return auth.doctorSignup(request);
     }

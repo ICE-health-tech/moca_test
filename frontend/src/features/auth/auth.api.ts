@@ -52,7 +52,7 @@ export async function doctorLogin(
   email: string,
   password: string,
 ): Promise<{ user: AuthUser; accessToken: string }> {
-  const { data } = await api.post<LoginResponse>('/api/auth/doctor/login', {
+  const { data } = await api.post<LoginResponse>('/api/auth/staff/login', {
     email,
     password,
   })
@@ -67,6 +67,6 @@ export async function doctorSignup(payload: {
   specialty?: string
   licenseNumber?: string
 }): Promise<{ user: AuthUser; accessToken: string }> {
-  const { data } = await api.post<LoginResponse>('/api/auth/doctor/signup', payload)
+  const { data } = await api.post<LoginResponse>('/api/auth/staff/signup', payload)
   return mapLogin(data)
 }
