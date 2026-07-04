@@ -1,6 +1,10 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { doctorLogin as doctorLoginApi, patientLogin as patientLoginApi } from '../features/auth/auth.api'
+import {
+  doctorLogin as doctorLoginApi,
+  doctorSignup as doctorSignupApi,
+  patientLogin as patientLoginApi,
+} from '../features/auth/auth.api'
 
 export type UserRole = 'PATIENT' | 'DOCTOR' | 'ADMIN'
 
@@ -22,6 +26,14 @@ type AuthState = {
   patientLogin: (phone: string) => Promise<void>
   /** Doctor / admin: email + password → POST /api/auth/doctor/login */
   doctorLogin: (email: string, password: string) => Promise<void>
+  /** Doctor signup → POST /api/auth/doctor/signup */
+  doctorSignup: (payload: {
+    email: string
+    password: string
+    fullName: string
+    specialty?: string
+    licenseNumber?: string
+  }) => Promise<void>
   updateUser: (user: AuthUser) => void
   logout: () => void
 }
@@ -37,6 +49,10 @@ export const useAuthStore = create<AuthState>()(
       },
       doctorLogin: async (email, password) => {
         const { user, accessToken } = await doctorLoginApi(email, password)
+        set({ user, token: accessToken })
+      },
+      doctorSignup: async (payload) => {
+        const { user, accessToken } = await doctorSignupApi(payload)
         set({ user, token: accessToken })
       },
       updateUser: (user) => set({ user }),

@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { DoctorSignupPage } from './features/auth/DoctorSignupPage'
 import { LoginPage } from './features/auth/LoginPage'
 import { AdminDashboardPage, AdminDoctorsPage } from './features/admin/AdminPages'
 import {
@@ -20,6 +21,7 @@ export function AppRouter() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<DoctorSignupPage />} />
         <Route path="/entry" element={<LandingPage/>}/>
 
         <Route element={<PrivateRoute roles={['PATIENT']} />}>

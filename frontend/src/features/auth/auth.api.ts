@@ -58,3 +58,15 @@ export async function doctorLogin(
   })
   return mapLogin(data)
 }
+
+/** Doctor signup — creates account + returns JWT. */
+export async function doctorSignup(payload: {
+  email: string
+  password: string
+  fullName: string
+  specialty?: string
+  licenseNumber?: string
+}): Promise<{ user: AuthUser; accessToken: string }> {
+  const { data } = await api.post<LoginResponse>('/api/auth/doctor/signup', payload)
+  return mapLogin(data)
+}
