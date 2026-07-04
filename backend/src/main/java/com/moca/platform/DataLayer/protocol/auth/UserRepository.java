@@ -17,7 +17,7 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
 
     @Query("""
             SELECT u FROM UserEntity u
-            WHERE u.role = com.moca.platform.DataLayer.protocol.UserRole.DOCTOR
+            WHERE u.role = com.moca.platform.DataLayer.protocol.auth.UserRole.DOCTOR
             ORDER BY u.fullName
             """)
     List<UserEntity> findAllDoctors();
