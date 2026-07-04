@@ -40,6 +40,7 @@ Integration: [`docs/stitch-integration.md`](docs/stitch-integration.md)
 |-------|-----|----------|
 | `/entry` | Patient (public) | Giới thiệu + đăng nhập SĐT |
 | `/login` | Doctor / Admin | Email + mật khẩu |
+| `/signup` | Doctor | Đăng ký tài khoản mới |
 
 ---
 
@@ -144,9 +145,19 @@ Lịch khám: chỉ từ home grid (không tab bottom).
 
 ### `/login` — Doctor / Admin
 
-**Layout:** centered form, max-w-md.  
+**Layout:** centered form trong card `surface-container-lowest`, max-w-md.  
 **Fields:** email, password, show/hide.  
+**CTA row:** **Đăng nhập** (primary) + **Đăng ký** (secondary, cạnh nhau).  
 **Copy:** Assessment Pro header; lỗi **Email hoặc mật khẩu không đúng.**
+
+---
+
+### `/signup` — Đăng ký bác sĩ
+
+**Layout:** cùng shell với `/login` — card centered.  
+**Fields:** họ tên, email, mật khẩu, chuyên khoa (optional), CCHN (optional).  
+**States:** validating · submitting · lỗi 409 (email trùng) · lỗi API.  
+**Link:** Đã có tài khoản? → `/login`
 
 ---
 

@@ -1,20 +1,9 @@
 import {
   ArrowRight,
   BarChart3,
-  Brain,
   ClipboardList,
-  Compass,
-  Focus,
   Home,
-  Languages,
-  LayoutGrid,
-  Lightbulb,
-  LineChart,
-  ListOrdered,
   Menu,
-  MousePointerClick,
-  RotateCcw,
-  Scan,
   Stethoscope,
   UserRound,
   X,
@@ -31,35 +20,10 @@ const inputClass =
   'stitch-input w-full h-12 px-5 bg-surface-container-lowest border-2 border-outline rounded-xl text-lg text-on-surface placeholder:text-on-surface-variant'
 
 const steps = [
-  {
-    icon: MousePointerClick,
-    title: '1. Bắt đầu dễ dàng',
-    desc: 'Nhấn nút bắt đầu và nhập số điện thoại để định danh.',
-  },
-  {
-    icon: ListOrdered,
-    title: '2. Làm từng phần',
-    desc: 'Mỗi màn hình một câu hỏi, có hướng dẫn và bộ đếm thời gian.',
-  },
-  {
-    icon: LineChart,
-    title: '3. Xem kết quả',
-    desc: 'Kết quả được bác sĩ chấm và tư vấn qua hệ thống.',
-  },
+  'Nhấn bắt đầu và nhập số điện thoại.',
+  'Làm từng phần — một câu hỏi mỗi màn hình.',
+  'Xem kết quả sau khi bác sĩ chấm.',
 ]
-
-const mocaSections = [
-  { icon: LayoutGrid, title: 'Thị giác không gian' },
-  { icon: Scan, title: 'Gọi tên' },
-  { icon: Brain, title: 'Trí nhớ' },
-  { icon: Focus, title: 'Sự chú ý' },
-  { icon: Languages, title: 'Ngôn ngữ' },
-  { icon: Lightbulb, title: 'Trừu tượng' },
-  { icon: RotateCcw, title: 'Gợi nhớ' },
-  { icon: Compass, title: 'Định hướng' },
-]
-
-const footerLinks = ['About', 'Services', 'Privacy', 'Contact'] as const
 
 export function LandingPage() {
   const navigate = useNavigate()
@@ -114,8 +78,8 @@ export function LandingPage() {
   return (
     <div className="app-shell elderly-layout bg-background text-on-background">
       {/* ── HEADER ── */}
-      <header className="relative z-40 flex h-24 shrink-0 items-center justify-between border-b border-outline-variant bg-surface px-[var(--stitch-margin-mobile)]">
-        <img src="/moca-viet-logo.png" alt="MoCA Việt" className="h-18 w-auto object-contain" />
+      <header className="relative z-40 flex h-28 shrink-0 items-center justify-between border-b border-outline-variant bg-surface px-[var(--stitch-margin-mobile)]">
+        <img src="/moca-viet-logo.png" alt="MoCA Việt" className="h-20 w-auto object-contain" />
         <button
           type="button"
           onClick={() => setMenuOpen((v) => !v)}
@@ -141,106 +105,49 @@ export function LandingPage() {
 
       {/* ── SCROLL BODY ── */}
       <main className="app-shell__main overflow-y-auto pb-24">
-        {/* Hero card */}
-        <section className="px-[var(--stitch-margin-mobile)] pt-6">
-          <div className="overflow-hidden rounded-2xl border border-outline-variant bg-surface-container-lowest shadow-sm">
-            <div className="bg-primary px-4 py-2 text-center text-sm font-semibold text-on-primary">
-              Đánh giá nhận thức MoCA
-            </div>
-            <div className="p-5">
-              <h1 className="text-4xl font-bold leading-tight text-on-surface p-4">
-                Thang đánh giá nhận thức
-              </h1>
-              <p className="mt-3 text-sm leading-relaxed text-on-surface-variant">
-                MoCA Việt giúp bạn thực hiện bài kiểm tra Montreal Cognitive Assessment (MoCA)
-                tại nhà với giao diện rõ ràng và hướng dẫn chi tiết.
-              </p>
-              <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <button
-                  type="button"
-                  onClick={openPhoneSheet}
-                  className="flex h-24 min-h-12 items-center justify-center rounded-xl bg-primary text-sm font-bold text-on-primary shadow-sm transition active:scale-[0.98]"
-                >
-                  Bắt đầu kiểm tra
-                </button>
-                <button
-                  type="button"
-                  onClick={goDoctor}
-                  className="flex h-24 min-h-12 items-center justify-center rounded-xl border-2 border-primary bg-transparent text-sm font-bold text-primary transition active:scale-[0.98]"
-                >
-                  Bác sĩ
-                </button>
-              </div>
-              <p className="mt-4 text-center text-xs text-on-surface-variant">
-                Bài kiểm tra miễn phí · Kết quả được chuyên gia theo dõi
-              </p>
-            </div>
+        {/* Hero — flat, no nested card */}
+        <section className="px-[var(--stitch-margin-mobile)] pt-8 pb-6">
+          <h1 className="text-3xl font-bold leading-tight text-on-surface sm:text-4xl">
+            Thang đánh giá nhận thức MoCA
+          </h1>
+          <p className="mt-3 max-w-xl text-base leading-relaxed text-on-surface-variant">
+            Làm bài kiểm tra tại nhà — miễn phí, kết quả do bác sĩ chấm.
+          </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:max-w-md">
+            <button
+              type="button"
+              onClick={openPhoneSheet}
+              className="flex h-14 min-h-12 items-center justify-center rounded-xl bg-primary text-base font-bold text-on-primary transition active:scale-[0.98]"
+            >
+              Bắt đầu kiểm tra
+            </button>
+            <button
+              type="button"
+              onClick={goDoctor}
+              className="flex h-14 min-h-12 items-center justify-center rounded-xl border-2 border-primary text-base font-bold text-primary transition active:scale-[0.98]"
+            >
+              Bác sĩ
+            </button>
           </div>
         </section>
 
-        {/* How to — 3-column grid */}
-        <section className="mt-10 px-[var(--stitch-margin-mobile)]">
-          <h2 className="text-xl font-bold text-on-surface">Cách thực hiện bài kiểm tra</h2>
-          <p className="mt-1 text-sm text-on-surface-variant">
-            Bài kiểm tra gồm 8 phần theo chuẩn quốc tế
-          </p>
-          <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
-            {steps.map((step) => (
-              <div
-                key={step.title}
-                className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4 shadow-sm"
-              >
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <step.icon size={22} />
-                </div>
-                <p className="mt-3 text-sm font-bold text-on-surface">{step.title}</p>
-                <p className="mt-1 text-sm leading-relaxed text-on-surface-variant">{step.desc}</p>
-              </div>
+        {/* How to — simple numbered list */}
+        <section className="border-t border-outline-variant px-[var(--stitch-margin-mobile)] py-8">
+          <h2 className="text-lg font-bold text-on-surface">Cách làm</h2>
+          <ol className="mt-4 space-y-3 text-base text-on-surface-variant">
+            {steps.map((step, i) => (
+              <li key={step} className="flex gap-3">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
+                  {i + 1}
+                </span>
+                {step}
+              </li>
             ))}
-          </div>
+          </ol>
         </section>
 
-        {/* 8 MoCA sections — 2-column grid, icon left */}
-        <section className="mt-10 px-[var(--stitch-margin-mobile)] pb-4">
-          <h2 className="text-xl font-bold text-on-surface">
-            8 vùng chức năng nhận thức được kiểm tra
-          </h2>
-          <p className="mt-1 text-sm text-on-surface-variant">
-            Bài kiểm tra MoCA đánh giá toàn diện các khía cạnh của trí nhớ và nhận thức.
-          </p>
-          <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-8">
-            {mocaSections.map((section) => (
-              <div
-                key={section.title}
-                className="flex items-center gap-3 rounded-xl border border-outline-variant bg-surface-container-lowest px-4 py-3 shadow-sm"
-              >
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <section.icon size={18} />
-                </div>
-                <p className="text-sm font-semibold text-on-surface">{section.title}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Footer */}
-        <footer className="border-t border-outline-variant px-[var(--stitch-margin-mobile)] py-8 text-center">
-   
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm text-on-surface-variant">
-            {footerLinks.map((link) => (
-              <button
-                key={link}
-                type="button"
-                className="hover:text-primary"
-                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              >
-                {link}
-              </button>
-            ))}
-          </div>
-          <p className="mt-4 text-xs text-on-surface-variant">
-            &copy; {new Date().getFullYear()} MoCA Việt. Precision Cognitive Excellence.
-          </p>
+        <footer className="px-[var(--stitch-margin-mobile)] py-6 text-center text-xs text-on-surface-variant">
+          &copy; {new Date().getFullYear()} MoCA Việt
         </footer>
       </main>
 
