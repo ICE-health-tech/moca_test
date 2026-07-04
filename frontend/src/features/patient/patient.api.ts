@@ -76,7 +76,7 @@ export async function listDoctorOptions(
 ): Promise<DoctorOption[]> {
   if (USE_MOCK) return MOCK_DOCTORS
   const { data } = await api.get<DoctorOption[]>(
-    `/api/patient/${patientId}/doctors`,
+    `/api/patient/${patientId}/clinicians`,
   )
   return data
 }
