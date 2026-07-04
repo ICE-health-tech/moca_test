@@ -35,7 +35,7 @@ export function useDoctorOptions() {
   const patientId = useAuthStore((s) => s.user?.id)
 
   return useQuery({
-    queryKey: queryKeys.patient.doctors(patientId ?? ''),
+    queryKey: queryKeys.patient.clinicians(patientId ?? ''),
     queryFn: () => listDoctorOptions(patientId!),
     enabled: !!patientId,
   })

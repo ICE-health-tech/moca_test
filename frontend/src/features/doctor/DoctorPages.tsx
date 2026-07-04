@@ -8,8 +8,8 @@ import { useUiStore } from '../../stores/uiStore'
 import { useDoctorPatients, useDoctorReviews } from './useDoctorQueries'
 
 const DOCTOR_NAV = [
-  { to: '/doctor', label: 'Dashboard' },
-  { to: '/doctor/patients', label: 'Bệnh nhân' },
+  { to: '/clinician', label: 'Dashboard' },
+  { to: '/clinician/patients', label: 'Bệnh nhân' },
 ]
 
 export function DoctorDashboardPage() {
@@ -61,7 +61,7 @@ export function DoctorDashboardPage() {
                 </p>
               </div>
               <Link
-                to={`/doctor/reviews/${item.id}`}
+                to={`/clinician/reviews/${item.id}`}
                 className="rounded-2xl bg-blue-600 px-4 py-2 text-center text-sm font-bold text-white hover:bg-blue-700"
               >
                 Chấm điểm

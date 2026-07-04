@@ -16,7 +16,7 @@ export function LoginPage() {
 
   if (user) {
     const home =
-      user.role === 'PATIENT' ? '/patient' : user.role === 'DOCTOR' ? '/doctor' : '/admin'
+      user.role === 'PATIENT' ? '/patient' : user.role === 'DOCTOR' ? '/clinician' : '/admin'
     return <Navigate to={home} replace />
   }
 

@@ -8,8 +8,8 @@ import { useApproveReview, useSessionDetail } from './useDoctorQueries'
 import type { SectionScore } from './doctor.api'
 
 const DOCTOR_NAV = [
-  { to: '/doctor', label: 'Dashboard' },
-  { to: '/doctor/patients', label: 'Bệnh nhân' },
+  { to: '/clinician', label: 'Dashboard' },
+  { to: '/clinician/patients', label: 'Bệnh nhân' },
 ]
 
 function SectionReviewCard({
@@ -179,7 +179,7 @@ export function DoctorReviewPage() {
             {approveMutation.isPending ? 'Đang duyệt…' : 'Lưu & hoàn tất duyệt'}
           </button>
           <Link
-            to="/doctor"
+            to="/clinician"
             className="rounded-2xl border border-slate-200 px-5 py-3 font-medium text-slate-700 hover:bg-white"
           >
             Quay lại
@@ -191,7 +191,7 @@ export function DoctorReviewPage() {
         <div className="mt-4 rounded-2xl bg-green-50 p-4 text-sm text-green-800">
           Đã duyệt thành công! Điểm chính thức: {session.finalScore}/30.
           <Link
-            to="/doctor"
+            to="/clinician"
             className="ml-2 font-semibold text-green-900 underline"
           >
             Về dashboard

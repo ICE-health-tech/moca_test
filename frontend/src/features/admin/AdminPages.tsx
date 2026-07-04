@@ -6,7 +6,7 @@ import { useAdminDoctors, useAdminStats } from './useAdminQueries'
 
 const ADMIN_NAV = [
   { to: '/admin', label: 'Dashboard' },
-  { to: '/admin/doctors', label: 'Bác sĩ' },
+  { to: '/admin/clinicians', label: 'Bác sĩ' },
 ]
 
 export function AdminDashboardPage() {

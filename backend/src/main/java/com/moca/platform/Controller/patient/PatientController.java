@@ -39,8 +39,8 @@ public class PatientController {
         return patientApi.listAppointments(patientId);
     }
 
-    @GetMapping({"/{patientId}/doctors", "/{patientId}/clinicians"})
-    public List<DoctorOptionDto> doctors(@PathVariable UUID patientId) {
+    @GetMapping("/{patientId}/clinicians")
+    public List<DoctorOptionDto> clinicians(@PathVariable UUID patientId) {
         return patientApi.listDoctorOptions(patientId);
     }
 

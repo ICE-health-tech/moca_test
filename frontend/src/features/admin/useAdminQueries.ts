@@ -11,7 +11,7 @@ export function useAdminStats() {
 
 export function useAdminDoctors() {
   return useQuery({
-    queryKey: queryKeys.admin.doctors,
+    queryKey: queryKeys.admin.clinicians,
     queryFn: listAdminDoctors,
   })
 }

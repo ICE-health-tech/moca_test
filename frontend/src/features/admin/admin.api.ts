@@ -49,6 +49,6 @@ export async function fetchAdminStats(): Promise<AdminStats> {
 
 export async function listAdminDoctors(): Promise<AdminDoctor[]> {
   if (USE_MOCK) return MOCK_DOCTORS
-  const { data } = await api.get<AdminDoctor[]>('/api/admin/doctors')
+  const { data } = await api.get<AdminDoctor[]>('/api/admin/clinicians')
   return data
 }

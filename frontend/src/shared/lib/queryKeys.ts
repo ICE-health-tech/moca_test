@@ -8,8 +8,8 @@ export const queryKeys = {
       ['patient', patientId, 'sessions', sessionId] as const,
     appointments: (patientId: string) =>
       ['patient', patientId, 'appointments'] as const,
-    doctors: (patientId: string) =>
-      ['patient', patientId, 'doctors'] as const,
+    clinicians: (patientId: string) =>
+      ['patient', patientId, 'clinicians'] as const,
   },
 
   doctor: {
@@ -21,6 +21,6 @@ export const queryKeys = {
 
   admin: {
     stats: ['admin', 'stats'] as const,
-    doctors: ['admin', 'doctors'] as const,
+    clinicians: ['admin', 'clinicians'] as const,
   },
 } as const

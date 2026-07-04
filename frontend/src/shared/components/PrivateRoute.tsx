@@ -18,7 +18,7 @@ export function PrivateRoute({ roles }: Props) {
       user.role === 'PATIENT'
         ? '/patient'
         : user.role === 'DOCTOR'
-          ? '/doctor'
+          ? '/clinician'
           : '/admin'
     return <Navigate to={home} replace />
   }

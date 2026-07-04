@@ -34,30 +34,30 @@ const ROUTES: RouteDef[] = [
     ],
   },
   {
-    path: '/patient/doctors',
+    path: '/patient/clinicians',
     crumbs: [
       { label: 'Trang chủ', to: '/patient' },
       { label: 'Đổi bác sĩ' },
     ],
   },
-  { path: '/doctor', crumbs: [{ label: 'Dashboard' }] },
+  { path: '/clinician', crumbs: [{ label: 'Dashboard' }] },
   {
-    path: '/doctor/patients',
+    path: '/clinician/patients',
     crumbs: [
-      { label: 'Dashboard', to: '/doctor' },
+      { label: 'Dashboard', to: '/clinician' },
       { label: 'Bệnh nhân' },
     ],
   },
   {
-    path: '/doctor/reviews/:id',
+    path: '/clinician/reviews/:id',
     crumbs: [
-      { label: 'Dashboard', to: '/doctor' },
+      { label: 'Dashboard', to: '/clinician' },
       { label: 'Chấm điểm' },
     ],
   },
   { path: '/admin', crumbs: [{ label: 'Dashboard' }] },
   {
-    path: '/admin/doctors',
+    path: '/admin/clinicians',
     crumbs: [
       { label: 'Dashboard', to: '/admin' },
       { label: 'Quản lý bác sĩ' },

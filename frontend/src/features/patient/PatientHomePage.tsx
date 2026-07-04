@@ -26,7 +26,7 @@ const MENU = [
     color: 'bg-surface-container-high text-on-surface',
   },
   {
-    to: '/patient/doctors',
+    to: '/patient/clinicians',
     label: 'Đổi bác sĩ',
     desc: 'Bác sĩ phụ trách',
     icon: UserRound,

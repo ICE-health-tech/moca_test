@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/doctor")
+@RequestMapping("/api/clinician")
 public class DoctorController {
 
     private final DoctorReviewUseCase reviews;

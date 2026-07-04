@@ -18,7 +18,7 @@ export function DoctorSignupPage() {
   const [submitting, setSubmitting] = useState(false)
 
   if (user) {
-    return <Navigate to={user.role === 'DOCTOR' ? '/doctor' : '/admin'} replace />
+    return <Navigate to={user.role === 'DOCTOR' ? '/clinician' : '/admin'} replace />
   }
 
   const handleSignup = async (e: FormEvent) => {

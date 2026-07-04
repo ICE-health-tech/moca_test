@@ -23,8 +23,8 @@ public class AdminController {
         return admin.stats();
     }
 
-    @GetMapping("/doctors")
-    public List<AdminDoctorDto> doctors() {
+    @GetMapping("/clinicians")
+    public List<AdminDoctorDto> clinicians() {
         return admin.listDoctors();
     }
 }

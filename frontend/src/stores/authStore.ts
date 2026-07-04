@@ -24,9 +24,9 @@ type AuthState = {
   token: string | null
   /** Patient: phone only → POST /api/auth/patient/login */
   patientLogin: (phone: string) => Promise<void>
-  /** Doctor / admin: email + password → POST /api/auth/doctor/login */
+  /** Clinician / admin: email + password → POST /api/auth/staff/login */
   doctorLogin: (email: string, password: string) => Promise<void>
-  /** Doctor signup → POST /api/auth/doctor/signup */
+  /** Clinician signup → POST /api/auth/staff/signup */
   doctorSignup: (payload: {
     email: string
     password: string

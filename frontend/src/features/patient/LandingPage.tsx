@@ -61,7 +61,7 @@ export function LandingPage() {
   }
 
   const goDoctor = () => {
-    if (user?.role === 'DOCTOR') navigate('/doctor')
+    if (user?.role === 'DOCTOR') navigate('/clinician')
     else navigate('/login')
   }
 
