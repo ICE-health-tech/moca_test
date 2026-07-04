@@ -1,8 +1,7 @@
 import {
-  Cake, GraduationCap, LogOut, Mail, Phone, Pencil, User,
+  Cake, GraduationCap, Mail, Phone, Pencil, User,
 } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../stores/authStore'
 import { MocaPatientLayout } from '../../shared/components/layout/MocaPatientLayout'
 import { formatDateVi } from '../../shared/utils/format'
@@ -19,8 +18,6 @@ function displayGender(gender?: string) {
 
 export function PatientSettingsPage() {
   const user = useAuthStore((s) => s.user)
-  const logout = useAuthStore((s) => s.logout)
-  const navigate = useNavigate()
   const updateProfile = useUpdatePatientProfile()
 
   const [editing, setEditing] = useState(false)
@@ -65,11 +62,6 @@ export function PatientSettingsPage() {
     } catch {
       setError('Không lưu được thông tin. Thử lại sau.')
     }
-  }
-
-  const handleLogout = () => {
-    logout()
-    navigate('/entry', { replace: true })
   }
 
   return (

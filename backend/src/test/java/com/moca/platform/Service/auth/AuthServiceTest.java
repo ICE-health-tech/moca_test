@@ -3,12 +3,17 @@ package com.moca.platform.Service.auth;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import org.mockito.ArgumentCaptor;
 
 import com.moca.platform.DataLayer.protocol.auth.UserEntity;
 import com.moca.platform.DataLayer.protocol.auth.UserRepository;
 import com.moca.platform.DataLayer.protocol.auth.UserRole;
+import com.moca.platform.DataLayer.protocol.doctor.DoctorProfileEntity;
+import com.moca.platform.Dto.auth.DoctorSignupRequest;
 import com.moca.platform.SecurityLayer.JwtService;
 import java.time.Instant;
 import java.util.Optional;
@@ -162,6 +167,70 @@ class AuthUseCaseImplTest {
                     .isInstanceOf(ResponseStatusException.class)
                     .extracting("statusCode")
                     .isEqualTo(HttpStatus.UNAUTHORIZED);
+        }
+    }
+
+    // ───────────────────── doctorSignup ─────────────────────
+    @Nested
+    class DoctorSignup {
+
+        DoctorSignupRequest request = new DoctorSignupRequest(
+                "new.doctor@test.com", "password123", "BS. Mới", "Thần kinh", "CCHN-999");
+
+        /** New email → saves DOCTOR user + active profile → returns token. */
+        @Test
+        void createsDoctorAndProfile_whenEmailNew() {
+            when(users.findByEmailIgnoreCase("new.doctor@test.com")).thenReturn(Optional.empty());
+            when(passwordEncoder.encode("password123")).thenReturn("encoded-pass");
+            when(users.save(any(UserEntity.class))).thenAnswer(inv -> inv.getArgument(0));
+
+            var response = service.doctorSignup(request);
+
+            assertThat(response.accessToken()).isEqualTo("mock-token");
+            assertThat(response.user().role()).isEqualTo(UserRole.DOCTOR);
+
+            var userCaptor = ArgumentCaptor.forClass(UserEntity.class);
+            verify(users).save(userCaptor.capture());
+            assertThat(userCaptor.getValue().getPasswordHash()).isEqualTo("encoded-pass");
+            assertThat(userCaptor.getValue().getFullName()).isEqualTo("BS. Mới");
+
+            var profileCaptor = ArgumentCaptor.forClass(DoctorProfileEntity.class);
+            verify(doctorProfiles).save(profileCaptor.capture());
+            assertThat(profileCaptor.getValue().getSpecialty()).isEqualTo("Thần kinh");
+            assertThat(profileCaptor.getValue().getLicenseNumber()).isEqualTo("CCHN-999");
+            assertThat(profileCaptor.getValue().isActive()).isTrue();
+        }
+
+        /** Email already registered → 409, nothing saved. */
+        @Test
+        void throws409_whenEmailTaken() {
+            when(users.findByEmailIgnoreCase("new.doctor@test.com"))
+                    .thenReturn(Optional.of(patient));
+
+            assertThatThrownBy(() -> service.doctorSignup(request))
+                    .isInstanceOf(ResponseStatusException.class)
+                    .extracting("statusCode")
+                    .isEqualTo(HttpStatus.CONFLICT);
+
+            verify(users, never()).save(any());
+            verify(doctorProfiles, never()).save(any());
+        }
+
+        /** Blank specialty/license → stored as null, not empty string. */
+        @Test
+        void storesNull_whenSpecialtyBlank() {
+            var blankRequest = new DoctorSignupRequest(
+                    "new.doctor@test.com", "password123", "BS. Mới", "   ", null);
+            when(users.findByEmailIgnoreCase("new.doctor@test.com")).thenReturn(Optional.empty());
+            when(passwordEncoder.encode("password123")).thenReturn("encoded-pass");
+            when(users.save(any(UserEntity.class))).thenAnswer(inv -> inv.getArgument(0));
+
+            service.doctorSignup(blankRequest);
+
+            var profileCaptor = ArgumentCaptor.forClass(DoctorProfileEntity.class);
+            verify(doctorProfiles).save(profileCaptor.capture());
+            assertThat(profileCaptor.getValue().getSpecialty()).isNull();
+            assertThat(profileCaptor.getValue().getLicenseNumber()).isNull();
         }
     }
 
