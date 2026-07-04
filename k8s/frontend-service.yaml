@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    com.centurylinklabs.watchtower.enable: "true"
+    kompose.cmd: kompose convert -f compose.prod.yml -o k8s/
+    kompose.version: 1.38.0 (HEAD)
+  labels:
+    io.kompose.service: frontend
+  name: frontend
+spec:
+  ports:
+    - name: "3000"
+      port: 3000
+      targetPort: 80
+  selector:
+    io.kompose.service: frontend

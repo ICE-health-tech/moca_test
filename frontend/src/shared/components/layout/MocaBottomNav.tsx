@@ -1,9 +1,9 @@
-import { BarChart3, Brain, LogOut, UserRound } from 'lucide-react'
+import { BarChart3, Home, LogOut, UserRound } 
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../../stores/authStore'
 
 const NAV = [
-  { to: '/patient', label: 'Assessment', icon: Brain, end: true },
+  { to: '/patient', label: 'Trang chủ', icon: Home, end: true },
   { to: '/patient/doctors', label: 'Bác sĩ', icon: UserRound },
   { to: '/patient/results', label: 'Kết quả', icon: BarChart3 },
 ] as const

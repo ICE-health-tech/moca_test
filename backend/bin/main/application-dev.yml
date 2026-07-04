@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:192.168.22.111}:${DB_PORT:5432}/${DB_NAME:moca-test-db}
+    username: ${DB_USER:duylong}
+    password: ${DB_PASSWORD:duylongadminpass}
+    hikari:
+      maximum-pool-size: 5
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    validate-on-migrate: false
+    
+
+redis:
+  enabled: ${REDIS_ENABLED:true}
+  host: ${REDIS_HOST:127.0.0.1}
+  port: ${REDIS_PORT:16379}
+  password: ${REDIS_PASSWORD:}
+  ssl: ${REDIS_SSL:false}
+
+minio:
+  enabled: ${MINIO_ENABLED:false}

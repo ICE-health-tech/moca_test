@@ -1,24 +1,12 @@
 spring:
   application:
     name: moca-platform
-  datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:moca}
-    username: ${DB_USER:moca}
-    password: ${DB_PASSWORD:moca_dev}
-    hikari:
-      maximum-pool-size: 10
   jpa:
     open-in-view: false
-    hibernate:
-      ddl-auto: validate
     properties:
       hibernate:
         jdbc:
           time_zone: UTC
-  flyway:
-    enabled: true
-    locations: classpath:db/migration
-    validate-on-migrate: false
   data:
     redis:
       repositories:
@@ -32,18 +20,3 @@ management:
     web:
       exposure:
         include: health
-
-minio:
-  enabled: ${MINIO_ENABLED:false}
-  endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
-  access-key: ${MINIO_ACCESS_KEY:}
-  secret-key: ${MINIO_SECRET_KEY:}
-  bucket: ${MINIO_BUCKET:moca-drawings}
-  auto-create-bucket: ${MINIO_AUTO_CREATE_BUCKET:false}
-
-redis:
-  enabled: ${REDIS_ENABLED:false}
-  host: ${REDIS_HOST:redis.duylong.art}
-  port: ${REDIS_PORT:6379}
-  password: ${REDIS_PASSWORD:}
-  ssl: ${REDIS_SSL:true}

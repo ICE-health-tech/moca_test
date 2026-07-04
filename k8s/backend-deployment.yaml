@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    com.centurylinklabs.watchtower.enable: "true"
+    kompose.cmd: kompose convert -f compose.prod.yml -o k8s/
+    kompose.version: 1.38.0 (HEAD)
+  labels:
+    io.kompose.service: backend
+  name: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: backend
+  template:
+    metadata:
+      annotations:
+        com.centurylinklabs.watchtower.enable: "true"
+        kompose.cmd: kompose convert -f compose.prod.yml -o k8s/
+        kompose.version: 1.38.0 (HEAD)
+      labels:
+        io.kompose.service: backend
+    spec:
+      containers:
+        - envFrom:
+            - configMapRef:
+                name: backend--env
+          image: duylongcontainer/moca-backend:latest
+          livenessProbe:
+            exec:
+              command:
+                - curl
+                - -sf
+                - http://localhost:8080/api/health
+            failureThreshold: 5
+            initialDelaySeconds: 90
+            periodSeconds: 15
+            timeoutSeconds: 5
+          name: moca-backend
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+      restartPolicy: Always

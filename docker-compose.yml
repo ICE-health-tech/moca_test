@@ -11,15 +11,15 @@ services:
     image: postgres:16-alpine
     container_name: moca-postgres
     environment:
-      POSTGRES_DB: moca
-      POSTGRES_USER: moca
-      POSTGRES_PASSWORD: moca_dev
+      POSTGRES_DB: moca-test-db
+      POSTGRES_USER: duylong
+      POSTGRES_PASSWORD: duylongadminpass
     ports:
-      - "5433:5432"
+      - "5432:5432"
     volumes:
       - moca_pg_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U moca -d moca"]
+      test: ["CMD-SHELL", "pg_isready -U duylong -d moca-test-db"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -32,6 +32,8 @@ services:
       SERVER_PORT: 8080
     ports:
       - "8080:8080"
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
     healthcheck:
       test: ["CMD", "curl", "-sf", "http://localhost:8080/api/health"]
       interval: 15s
@@ -41,12 +43,27 @@ services:
 
   frontend:
     build: ./frontend
+    image: duylongcontainer/moca-frontend:latest
     container_name: moca-frontend
     depends_on:
       backend:
         condition: service_healthy
     ports:
       - "3000:80"
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: moca-watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      DOCKER_API_VERSION: "1.44"
+      WATCHTOWER_POLL_INTERVAL: 300
+      WATCHTOWER_CLEANUP: "true"
+      WATCHTOWER_LABEL_ENABLE: "true"
 
   minio:
     profiles: ["local-minio"]

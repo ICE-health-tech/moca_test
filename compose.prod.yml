@@ -1,10 +1,8 @@
 # VM / server deploy — pull from Docker Hub (no local build).
-# CI pushes images on every push to main (see .github/workflows/docker-publish.yml).
-# Proxmox VMs are usually linux/amd64 — GitHub Actions builds that platform automatically.
+# Proxmox VMs are usually linux/amd64 — build with buildx before push (see below).
 #
-# GitHub secrets (one-time): DOCKERHUB_USERNAME, DOCKERHUB_TOKEN
-#
-# Manual push (optional):
+# On Mac (Apple Silicon) push amd64 images for the server:
+#   docker buildx create --use --name moca-builder 2>/dev/null || docker buildx use moca-builder
 #   docker buildx build --platform linux/amd64 -t duylongcontainer/moca-backend:latest --push ./backend
 #   docker buildx build --platform linux/amd64 -t duylongcontainer/moca-frontend:latest --push ./frontend
 #
@@ -15,12 +13,33 @@
 #   docker compose -f compose.prod.yml up -d
 
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: moca-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: moca-test-db
+      POSTGRES_USER: duylong
+      POSTGRES_PASSWORD: duylongadminpass
+    ports:
+      - "5433:5432"
+    volumes:
+      - moca_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U duylong -d moca-test-db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   backend:
     image: duylongcontainer/moca-backend:latest
     platform: linux/amd64
     container_name: moca-backend
     restart: unless-stopped
     env_file: backend/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
     ports:
       - "8080:8080"
     healthcheck:
@@ -55,3 +74,6 @@ services:
       WATCHTOWER_POLL_INTERVAL: 300
       WATCHTOWER_CLEANUP: "true"
       WATCHTOWER_LABEL_ENABLE: "true"
+
+volumes:
+  moca_pg_data:

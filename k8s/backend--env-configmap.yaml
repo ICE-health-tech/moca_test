@@ -1,0 +1,25 @@
+apiVersion: v1
+data:
+  DB_NAME: moca-test-db
+  DB_PASSWORD: duylongadminpass
+  DB_USER: duylong
+  JWT_EXPIRATION_DAYS: "7"
+  JWT_SECRET: do-not-use-this-in-production-change-it-to-a-long-random-string
+  MINIO_ACCESS_KEY: ""
+  MINIO_AUTO_CREATE_BUCKET: "false"
+  MINIO_BUCKET: moca-drawings
+  MINIO_ENABLED: "false"
+  MINIO_ENDPOINT: http://your-minio-host:9000
+  MINIO_SECRET_KEY: ""
+  REDIS_ENABLED: "true"
+  REDIS_HOST: 127.0.0.1
+  REDIS_PASSWORD: duylongadminpass
+  REDIS_PORT: "16379"
+  REDIS_SSL: "false"
+  SERVER_PORT: "8080"
+  SPRING_PROFILES_ACTIVE: dev
+kind: ConfigMap
+metadata:
+  labels:
+    io.kompose.service: backend-backend--env
+  name: backend--env
