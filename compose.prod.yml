@@ -7,7 +7,7 @@
 #   docker buildx build --platform linux/amd64 -t duylongcontainer/moca-frontend:latest --push ./frontend
 #
 # On the server (amd64):
-#   cp backend/.env.example .env   # edit DB_*, REDIS_*, MINIO_*
+#   cp .env.prod.example .env          # set JWT_SECRET (≥48 chars)
 #   docker login -u duylongcontainer
 #   docker compose -f compose.prod.yml pull
 #   docker compose -f compose.prod.yml up -d
@@ -46,6 +46,7 @@ services:
       DB_PASSWORD: duylongadminpass
       MINIO_ENABLED: "false"
       REDIS_ENABLED: "false"
+      JWT_SECRET: ${JWT_SECRET}
     depends_on:
       postgres:
         condition: service_healthy
