@@ -1,15 +1,16 @@
 import { Mail, MapPin, Phone, Star } from 'lucide-react'
 import { MocaPatientLayout } from '../../shared/components/layout/MocaPatientLayout'
 import { QueryState } from '../../shared/components/QueryState'
-import { useDoctorOptions } from './usePatientQueries'
+import { useDoctorOptions, usePickClinician } from './usePatientQueries'
 
 export function PatientDoctorsPage() {
   const { data: doctors = [], isLoading, error } = useDoctorOptions()
+  const pickClinician = usePickClinician()
 
   return (
     <MocaPatientLayout title="Bác sĩ của tôi">
       <p className="mb-3 shrink-0 text-sm text-on-surface-variant">
-        Thông tin bác sĩ phụ trách.
+        Chọn bác sĩ phụ trách theo dõi kết quả MoCA của bạn.
       </p>
       <QueryState isLoading={isLoading} error={error}>
         <div className="space-y-3">
@@ -67,6 +68,23 @@ export function PatientDoctorsPage() {
                       {d.email}
                     </a>
                   </div>
+                )}
+              </div>
+
+              <div className="mt-4 border-t border-outline-variant/50 pt-3">
+                {d.isCurrent ? (
+                  <p className="text-sm font-medium text-on-surface-variant">
+                    Bác sĩ đang phụ trách bạn
+                  </p>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={pickClinician.isPending}
+                    onClick={() => pickClinician.mutate(d.id)}
+                    className="min-h-12 w-full rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-on-primary hover:opacity-90 disabled:opacity-50"
+                  >
+                    {pickClinician.isPending ? 'Đang chọn…' : 'Chọn bác sĩ này'}
+                  </button>
                 )}
               </div>
             </div>

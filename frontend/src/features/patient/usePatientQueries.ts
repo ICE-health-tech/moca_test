@@ -5,6 +5,7 @@ import {
   listDoctorOptions,
   listPatientAppointments,
   listPatientSessions,
+  pickClinician,
   submitTestSession,
   updatePatientProfile,
   type SubmitSessionPayload,
@@ -38,6 +39,22 @@ export function useDoctorOptions() {
     queryKey: queryKeys.patient.clinicians(patientId ?? ''),
     queryFn: () => listDoctorOptions(patientId!),
     enabled: !!patientId,
+  })
+}
+
+export function usePickClinician() {
+  const queryClient = useQueryClient()
+  const patientId = useAuthStore((s) => s.user?.id)
+
+  return useMutation({
+    mutationFn: (clinicianId: string) => pickClinician(patientId!, clinicianId),
+    onSuccess: () => {
+      if (patientId) {
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.patient.clinicians(patientId),
+        })
+      }
+    },
   })
 }
 

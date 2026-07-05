@@ -6,11 +6,14 @@ import com.moca.platform.Dto.patient.DoctorOptionDto;
 import com.moca.platform.Dto.patient.PatientUpdateRequest;
 import com.moca.platform.Dto.session.TestSessionSummaryDto;
 import com.moca.platform.Service.patient.PatientApiUseCase;
+import com.moca.platform.Dto.patient.PickClinicianRequest;
+import com.moca.platform.Service.patient.PatientAssignClinicianUseCase;
 import com.moca.platform.Service.patient.PatientUpdateUseCase;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,10 +26,15 @@ public class PatientController {
 
     private final PatientApiUseCase patientApi;
     private final PatientUpdateUseCase patientUpdate;
+    private final PatientAssignClinicianUseCase assignClinician;
 
-    public PatientController(PatientApiUseCase patientApi, PatientUpdateUseCase patientUpdate) {
+    public PatientController(
+            PatientApiUseCase patientApi,
+            PatientUpdateUseCase patientUpdate,
+            PatientAssignClinicianUseCase assignClinician) {
         this.patientApi = patientApi;
         this.patientUpdate = patientUpdate;
+        this.assignClinician = assignClinician;
     }
 
     @GetMapping("/{patientId}/sessions")
@@ -42,6 +50,13 @@ public class PatientController {
     @GetMapping("/{patientId}/clinicians")
     public List<DoctorOptionDto> clinicians(@PathVariable UUID patientId) {
         return patientApi.listDoctorOptions(patientId);
+    }
+
+    @PostMapping("/{patientId}/clinicians")
+    public void pickClinician(
+            @PathVariable UUID patientId,
+            @Valid @RequestBody PickClinicianRequest body) {
+        assignClinician.assignClinician(patientId, body.clinicianId());
     }
 
     @PatchMapping("/{patientId}/profile")

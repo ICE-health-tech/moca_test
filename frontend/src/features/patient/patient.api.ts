@@ -81,6 +81,14 @@ export async function listDoctorOptions(
   return data
 }
 
+export async function pickClinician(
+  patientId: string,
+  clinicianId: string,
+): Promise<void> {
+  if (USE_MOCK) return
+  await api.post(`/api/patient/${patientId}/clinicians`, { clinicianId })
+}
+
 export type UpdatePatientProfilePayload = {
   fullName: string
   email?: string
