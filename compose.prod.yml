@@ -44,7 +44,12 @@ services:
       DB_NAME: moca-test-db
       DB_USER: duylong
       DB_PASSWORD: duylongadminpass
-      MINIO_ENABLED: "false"
+      MINIO_ENABLED: ${MINIO_ENABLED:-false}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT:-http://192.168.22.19:9000}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-}
+      MINIO_BUCKET: ${MINIO_BUCKET:-moca-drawings}
+      MINIO_AUTO_CREATE_BUCKET: ${MINIO_AUTO_CREATE_BUCKET:-false}
       REDIS_ENABLED: "false"
       JWT_SECRET: ${JWT_SECRET}
     depends_on:
