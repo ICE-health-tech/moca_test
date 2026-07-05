@@ -79,7 +79,7 @@ class DoctorReviewUseCaseImplTest {
         void returnsPendingForAssignedDoctor() {
             when(users.findById(doctorId)).thenReturn(Optional.of(doctor()));
             TestSessionEntity session = TestSessionEntity.createSubmitted(
-                    UUID.randomUUID(), patientId, "set-a", "{}", Instant.now());
+                    UUID.randomUUID(), patientId, "set-a", "{}", 11, Instant.now());
             when(sessions.findPendingForDoctor(doctorId, TestSessionStatus.PENDING_REVIEW))
                     .thenReturn(List.of(session));
             var patient = patient();
@@ -96,7 +96,7 @@ class DoctorReviewUseCaseImplTest {
             when(sessions.findPendingForDoctor(doctorId, TestSessionStatus.PENDING_REVIEW))
                     .thenReturn(List.of());
             TestSessionEntity session = TestSessionEntity.createSubmitted(
-                    UUID.randomUUID(), patientId, "set-b", "{}", Instant.now());
+                    UUID.randomUUID(), patientId, "set-b", "{}", 11, Instant.now());
             when(sessions.findByStatusOrderBySubmittedAtAsc(TestSessionStatus.PENDING_REVIEW))
                     .thenReturn(List.of(session));
             var patient = patient();
@@ -130,7 +130,7 @@ class DoctorReviewUseCaseImplTest {
             var patient = patient();
             when(users.findAllById(List.of(patientId))).thenReturn(List.of(patient));
             TestSessionEntity session = TestSessionEntity.createSubmitted(
-                    UUID.randomUUID(), patientId, "set-a", "{}", Instant.now());
+                    UUID.randomUUID(), patientId, "set-a", "{}", 11, Instant.now());
             when(sessions.findByPatientIdInOrderBySubmittedAtDesc(List.of(patientId)))
                     .thenReturn(List.of(session));
 
@@ -157,7 +157,7 @@ class DoctorReviewUseCaseImplTest {
         void returnsDetailWithScores() {
             UUID sessionId = UUID.randomUUID();
             TestSessionEntity session = TestSessionEntity.createSubmitted(
-                    sessionId, patientId, "set-a", "{}", Instant.now());
+                    sessionId, patientId, "set-a", "{}", 11, Instant.now());
             when(sessions.findById(sessionId)).thenReturn(Optional.of(session));
             when(users.findById(patientId)).thenReturn(Optional.of(patient()));
             TestSectionScoreEntity score = TestSectionScoreEntity.create(
@@ -190,7 +190,7 @@ class DoctorReviewUseCaseImplTest {
         void updatesScoresAndFinalizesSession() {
             UUID sessionId = UUID.randomUUID();
             TestSessionEntity session = TestSessionEntity.createSubmitted(
-                    sessionId, patientId, "set-a", "{}", Instant.now());
+                    sessionId, patientId, "set-a", "{}", 11, Instant.now());
             when(sessions.findById(sessionId)).thenReturn(Optional.of(session));
             var existingScore = TestSectionScoreEntity.create(
                     UUID.randomUUID(), sessionId, "section_1", "Memory",

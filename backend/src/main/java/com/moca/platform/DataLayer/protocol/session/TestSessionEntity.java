@@ -75,6 +75,7 @@ public class TestSessionEntity {
             UUID patientId,
             String setId,
             String rawAnswers,
+            int educationYears,
             Instant submittedAt) {
         TestSessionEntity session = new TestSessionEntity();
         session.id = id;
@@ -82,6 +83,7 @@ public class TestSessionEntity {
         session.setId = setId;
         session.rawAnswers = rawAnswers;
         session.status = TestSessionStatus.PENDING_REVIEW;
+        session.educationBonus = Decimals.score(educationYears <= 12 ? 1 : 0);
         session.submittedAt = submittedAt;
         session.createdAt = submittedAt;
         session.classification = "Chờ bác sĩ duyệt";

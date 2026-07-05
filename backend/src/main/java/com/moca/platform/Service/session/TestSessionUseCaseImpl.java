@@ -49,6 +49,7 @@ public class TestSessionUseCaseImpl implements TestSessionUseCase {
                 request.patientId(),
                 request.setId(),
                 storedAnswers,
+                request.educationYears(),
                 now);
         sessions.save(session);
 

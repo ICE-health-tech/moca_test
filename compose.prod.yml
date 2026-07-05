@@ -45,7 +45,7 @@ services:
       DB_USER: duylong
       DB_PASSWORD: duylongadminpass
       MINIO_ENABLED: ${MINIO_ENABLED:-false}
-      MINIO_ENDPOINT: ${MINIO_ENDPOINT:-http://192.168.22.19:9000}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT:-http://192.168.22.17:9000}
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-}
       MINIO_BUCKET: ${MINIO_BUCKET:-moca-drawings}

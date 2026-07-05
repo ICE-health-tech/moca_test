@@ -74,7 +74,23 @@ class TestSessionUseCaseImplTest {
 
             assertThat(result.setId()).isEqualTo("set-a");
             assertThat(result.status()).isEqualTo(TestSessionStatus.PENDING_REVIEW);
-            verify(sessions).save(any(TestSessionEntity.class));
+            verify(sessions).save(sessionCaptor.capture());
+            assertThat(sessionCaptor.getValue().getEducationBonus())
+                    .isEqualByComparingTo(java.math.BigDecimal.ONE);
+        }
+
+        @Test
+        void setsEducationBonusZero_whenMoreThan12Years() {
+            var request = new SubmitTestSessionRequest(
+                    patientId, "set-a", Map.of("q1", "cat"), 16);
+            when(drawingAnswers.offloadDrawings(any(UUID.class), any(String.class)))
+                    .thenAnswer(invocation -> invocation.getArgument(1));
+
+            service.submit(request);
+
+            verify(sessions).save(sessionCaptor.capture());
+            assertThat(sessionCaptor.getValue().getEducationBonus())
+                    .isEqualByComparingTo(java.math.BigDecimal.ZERO);
         }
 
         @Test
@@ -103,7 +119,7 @@ class TestSessionUseCaseImplTest {
             String rawAnswers = objectMapper.writeValueAsString(root);
 
             TestSessionEntity session = TestSessionEntity.createSubmitted(
-                    sessionId, patientId, "set-a", rawAnswers, Instant.now());
+                    sessionId, patientId, "set-a", rawAnswers, 11, Instant.now());
             when(sessions.findById(sessionId)).thenReturn(Optional.of(session));
             when(storage.getObject("sessions/" + sessionId + "/section_1a_trail_canvas.png"))
                     .thenReturn(new byte[]{1, 2, 3});

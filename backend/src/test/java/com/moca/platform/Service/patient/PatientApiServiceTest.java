@@ -75,7 +75,7 @@ class PatientApiUseCaseImplTest {
         void returnsSessionsForPatient() {
             when(users.findById(patientId)).thenReturn(Optional.of(patient()));
             TestSessionEntity session = TestSessionEntity.createSubmitted(
-                    UUID.randomUUID(), patientId, "set-a", "{}", Instant.now());
+                    UUID.randomUUID(), patientId, "set-a", "{}", 11, Instant.now());
             when(sessions.findByPatientIdOrderByCreatedAtDesc(patientId))
                     .thenReturn(List.of(session));
 
