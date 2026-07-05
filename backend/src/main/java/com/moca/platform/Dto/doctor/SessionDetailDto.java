@@ -16,5 +16,6 @@ public record SessionDetailDto(
         BigDecimal provisionalScore,
         BigDecimal finalScore,
         String classification,
+        BigDecimal educationBonus,
         List<SectionScoreDto> sectionScores) {
 }

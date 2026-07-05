@@ -1,5 +1,7 @@
 package com.moca.platform.Service.doctor;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moca.platform.DataLayer.protocol.patient.PatientAssignmentRepository;
 import com.moca.platform.DataLayer.protocol.session.ScoringMode;
 import com.moca.platform.DataLayer.protocol.session.TestSectionScoreEntity;
@@ -16,6 +18,7 @@ import com.moca.platform.Dto.doctor.DoctorPatientSessionDto;
 import com.moca.platform.Dto.doctor.ReviewQueueItemDto;
 import com.moca.platform.Dto.doctor.SectionScoreDto;
 import com.moca.platform.Dto.doctor.SessionDetailDto;
+import com.moca.platform.Service.session.MocaAutoGrader;
 import com.moca.platform.shared.Decimals;
 
 import java.math.BigDecimal;
@@ -45,16 +48,22 @@ public class DoctorReviewUseCaseImpl implements DoctorReviewUseCase {
     private final TestSectionScoreRepository sectionScores;
     private final UserRepository users;
     private final PatientAssignmentRepository assignments;
+    private final MocaAutoGrader grader;
+    private final ObjectMapper objectMapper;
 
     public DoctorReviewUseCaseImpl(
             TestSessionRepository sessions,
             TestSectionScoreRepository sectionScores,
             UserRepository users,
-            PatientAssignmentRepository assignments) {
+            PatientAssignmentRepository assignments,
+            MocaAutoGrader grader,
+            ObjectMapper objectMapper) {
         this.sessions = sessions;
         this.sectionScores = sectionScores;
         this.users = users;
         this.assignments = assignments;
+        this.grader = grader;
+        this.objectMapper = objectMapper;
     }
 
     // 1 validate → 2 sessions → 3 batch patients → 4 map DTO (no DB in loop)
@@ -108,10 +117,11 @@ public class DoctorReviewUseCaseImpl implements DoctorReviewUseCase {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public SessionDetailDto getSessionDetail(UUID sessionId) {
         TestSessionEntity session = sessions.findById(sessionId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy phiên"));
+        ensureSectionScores(session);
         return toSessionDetail(session);
     }
 
@@ -149,9 +159,49 @@ public class DoctorReviewUseCaseImpl implements DoctorReviewUseCase {
         }
         sectionScores.saveAll(toSave);
 
-        session.finalizeReview(total, classify(total), null, Instant.now());
+        BigDecimal bonus = session.getEducationBonus() != null
+                ? session.getEducationBonus()
+                : Decimals.zeroScore();
+        BigDecimal finalScore = total.add(bonus).min(MAX_MOCA_SCORE);
+
+        session.finalizeReview(finalScore, classify(finalScore), null, Instant.now());
         sessions.save(session);
         return toSessionDetail(session);
+    }
+
+    private void ensureSectionScores(TestSessionEntity session) {
+        List<TestSectionScoreEntity> existing =
+                sectionScores.findBySessionIdOrderBySectionKeyAsc(session.getId());
+        if (!existing.isEmpty()) {
+            return;
+        }
+
+        Map<String, Object> rawAnswers = parseRawAnswers(session.getRawAnswers());
+        int educationYears = educationYearsFor(session);
+        MocaAutoGrader.GradeResult graded = grader.grade(rawAnswers, educationYears);
+        session.applyProvisionalGrade(
+                Decimals.score(graded.provisional()),
+                graded.classification());
+        sessions.save(session);
+        sectionScores.saveAll(grader.toEntities(session.getId(), graded));
+    }
+
+    private Map<String, Object> parseRawAnswers(String rawAnswersJson) {
+        try {
+            return objectMapper.readValue(rawAnswersJson, new TypeReference<>() {});
+        } catch (Exception e) {
+            throw new IllegalStateException("raw_answers JSON is invalid for session", e);
+        }
+    }
+
+    private int educationYearsFor(TestSessionEntity session) {
+        return users.findById(session.getPatientId())
+                .map(UserEntity::getEducationYears)
+                .filter(years -> years != null && years > 0)
+                .orElseGet(() -> session.getEducationBonus() != null
+                                && session.getEducationBonus().compareTo(BigDecimal.ONE) >= 0
+                        ? 12
+                        : 16);
     }
 
     private ReviewQueueItemDto toReviewItem(TestSessionEntity session, Map<UUID, UserEntity> patientsById) {
@@ -203,6 +253,7 @@ public class DoctorReviewUseCaseImpl implements DoctorReviewUseCase {
         String patientName = users.findById(session.getPatientId())
                 .map(UserEntity::getFullName)
                 .orElse("Bệnh nhân");
+        Map<String, String> notesByKey = graderNotesFor(session);
         List<SectionScoreDto> scores = sectionScores.findBySessionIdOrderBySectionKeyAsc(session.getId()).stream()
                 .map(row -> new SectionScoreDto(
                         row.getSectionKey(),
@@ -210,7 +261,7 @@ public class DoctorReviewUseCaseImpl implements DoctorReviewUseCase {
                         row.getMaxPoints(),
                         row.getPoints(),
                         row.getDoctorOverride(),
-                        null))
+                        notesByKey.get(row.getSectionKey())))
                 .toList();
         return new SessionDetailDto(
                 session.getId(),
@@ -222,7 +273,23 @@ public class DoctorReviewUseCaseImpl implements DoctorReviewUseCase {
                 session.getAutoScore(),
                 session.getFinalScore(),
                 session.getClassification(),
+                session.getEducationBonus(),
                 scores);
+    }
+
+    private Map<String, String> graderNotesFor(TestSessionEntity session) {
+        try {
+            Map<String, Object> rawAnswers = parseRawAnswers(session.getRawAnswers());
+            int educationYears = educationYearsFor(session);
+            return grader.grade(rawAnswers, educationYears).sections().stream()
+                    .filter(section -> section.note() != null)
+                    .collect(Collectors.toMap(
+                            MocaAutoGrader.SectionGrade::sectionKey,
+                            MocaAutoGrader.SectionGrade::note,
+                            (a, b) -> a));
+        } catch (Exception e) {
+            return Map.of();
+        }
     }
 
     private void requireDoctor(UUID doctorId) {

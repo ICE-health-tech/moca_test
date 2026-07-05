@@ -1,6 +1,7 @@
 import { api } from '../../shared/lib/axios'
+import { useMockApi } from '../../shared/lib/useMockApi'
 
-const USE_MOCK = import.meta.env.VITE_USE_MOCK !== 'false'
+const USE_MOCK = useMockApi()
 
 export type AdminStats = {
   doctorCount: number

@@ -1,6 +1,7 @@
 import { api } from '../../shared/lib/axios'
+import { useMockApi } from '../../shared/lib/useMockApi'
 
-const USE_MOCK = import.meta.env.VITE_USE_MOCK !== 'false'
+const USE_MOCK = useMockApi()
 
 export type ReviewQueueItem = {
   id: string
@@ -47,6 +48,7 @@ export type SessionDetail = {
   provisionalScore: number | null
   finalScore: number | null
   classification: string | null
+  educationBonus: number | null
   sectionScores: SectionScore[]
 }
 
@@ -136,6 +138,7 @@ const MOCK_SESSION_DETAIL: Record<string, SessionDetail> = {
     provisionalScore: 22,
     finalScore: null,
     classification: null,
+    educationBonus: 1,
     sectionScores: [
       { sectionKey: 'visuospatial', label: 'Thị giác – không gian', maxPoints: 5, autoScore: 4, doctorScore: null, note: 'Đồng hồ thiếu kim phút đúng 11:10' },
       { sectionKey: 'naming', label: 'Gọi tên con vật', maxPoints: 3, autoScore: 3, doctorScore: null, note: null },
@@ -157,6 +160,7 @@ const MOCK_SESSION_DETAIL: Record<string, SessionDetail> = {
     provisionalScore: 19,
     finalScore: null,
     classification: null,
+    educationBonus: 1,
     sectionScores: [
       { sectionKey: 'visuospatial', label: 'Thị giác – không gian', maxPoints: 5, autoScore: 4, doctorScore: null, note: null },
       { sectionKey: 'naming', label: 'Gọi tên con vật', maxPoints: 3, autoScore: 3, doctorScore: null, note: null },
@@ -178,6 +182,7 @@ const MOCK_SESSION_DETAIL: Record<string, SessionDetail> = {
     provisionalScore: 18,
     finalScore: null,
     classification: null,
+    educationBonus: 1,
     sectionScores: [
       { sectionKey: 'visuospatial', label: 'Thị giác – không gian', maxPoints: 5, autoScore: 3, doctorScore: null, note: 'Vẽ khối lập phương thiếu nét' },
       { sectionKey: 'naming', label: 'Gọi tên con vật', maxPoints: 3, autoScore: 2, doctorScore: null, note: 'Không nhận ra tê giác' },
@@ -213,7 +218,8 @@ export async function approveReview(
     const detail = MOCK_SESSION_DETAIL[sessionId]
     if (!detail) throw new Error(`Session ${sessionId} not found`)
     const doctorTotal = payload.scores.reduce((sum, s) => sum + s.doctorScore, 0)
-    detail.finalScore = doctorTotal
+    const bonus = detail.educationBonus ?? 0
+    detail.finalScore = Math.min(30, doctorTotal + bonus)
     detail.status = 'FINALIZED'
     detail.classification = doctorTotal >= 26
       ? 'Nhận thức bình thường'

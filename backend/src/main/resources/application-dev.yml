@@ -23,3 +23,7 @@ redis:
 
 minio:
   enabled: ${MINIO_ENABLED:false}
+
+# Local dev only — skip JWT; never enable in prod.
+security:
+  dev-bypass-auth: true

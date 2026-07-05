@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { isDevAuthBypass } from './devAuth'
 import { useAuthStore } from '../../stores/authStore'
 
 export const api = axios.create({
@@ -20,7 +21,7 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (res) => res,
   (error) => {
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && !isDevAuthBypass()) {
       useAuthStore.getState().logout()
     }
     return Promise.reject(error)

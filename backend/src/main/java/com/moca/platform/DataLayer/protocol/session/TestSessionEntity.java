@@ -90,6 +90,11 @@ public class TestSessionEntity {
         return session;
     }
 
+    public void applyProvisionalGrade(BigDecimal autoScore, String classification) {
+        this.autoScore = Decimals.normalizeScore(autoScore);
+        this.classification = classification;
+    }
+
     public void finalizeReview(BigDecimal finalScore, String classification, UUID reviewedBy, Instant reviewedAt) {
         BigDecimal normalized = Decimals.normalizeScore(finalScore);
         this.finalScore = normalized;

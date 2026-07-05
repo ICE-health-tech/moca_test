@@ -1,4 +1,6 @@
 import { api } from '../../shared/lib/axios'
+import { getDevUser } from '../../shared/lib/devFixtures'
+import { useMockApi } from '../../shared/lib/useMockApi'
 import type { AuthUser, UserRole } from '../../stores/authStore'
 
 export type AuthUserDto = {
@@ -41,6 +43,9 @@ function mapLogin(data: LoginResponse): { user: AuthUser; accessToken: string } 
 export async function patientLogin(
   phone: string,
 ): Promise<{ user: AuthUser; accessToken: string }> {
+  if (useMockApi()) {
+    return { accessToken: 'dev-bypass', user: { ...getDevUser('PATIENT'), phoneNumber: phone } }
+  }
   const { data } = await api.post<LoginResponse>('/api/auth/patient/login', {
     phone_number: phone,
   })
@@ -52,6 +57,10 @@ export async function doctorLogin(
   email: string,
   password: string,
 ): Promise<{ user: AuthUser; accessToken: string }> {
+  if (useMockApi()) {
+    const role: UserRole = email.includes('admin') ? 'ADMIN' : 'DOCTOR'
+    return { accessToken: 'dev-bypass', user: { ...getDevUser(role), email } }
+  }
   const { data } = await api.post<LoginResponse>('/api/auth/staff/login', {
     email,
     password,
@@ -67,6 +76,12 @@ export async function doctorSignup(payload: {
   specialty?: string
   licenseNumber?: string
 }): Promise<{ user: AuthUser; accessToken: string }> {
+  if (useMockApi()) {
+    return {
+      accessToken: 'dev-bypass',
+      user: { ...getDevUser('DOCTOR'), email: payload.email, fullName: payload.fullName },
+    }
+  }
   const { data } = await api.post<LoginResponse>('/api/auth/staff/signup', payload)
   return mapLogin(data)
 }

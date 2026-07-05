@@ -1,4 +1,6 @@
 import { api } from '../../shared/lib/axios'
+import { getDevUser } from '../../shared/lib/devFixtures'
+import { useMockApi } from '../../shared/lib/useMockApi'
 import { mapAuthUserDto } from '../auth/auth.api'
 import type { AuthUser } from '../../stores/authStore'
 import type {
@@ -7,7 +9,8 @@ import type {
   TestSessionSummary,
 } from '../../shared/types/session'
 
-const USE_MOCK = import.meta.env.VITE_USE_MOCK !== 'false'
+
+const USE_MOCK = useMockApi()
 
 const MOCK_SESSIONS: TestSessionSummary[] = [
   {
@@ -101,6 +104,9 @@ export async function updatePatientProfile(
   patientId: string,
   payload: UpdatePatientProfilePayload,
 ): Promise<AuthUser> {
+  if (USE_MOCK) {
+    return { ...getDevUser('PATIENT'), id: patientId, ...payload }
+  }
   const { data } = await api.patch(`/api/patient/${patientId}/profile`, payload)
   return mapAuthUserDto(data)
 }

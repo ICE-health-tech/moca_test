@@ -11,6 +11,7 @@ import {
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../stores/authStore'
+import { adoptDevRole, isDevAuthBypass } from '../../shared/lib/devAuth'
 import { validateVnPhone } from '../../shared/utils/phone'
 import '../../styles/stitch-elderly.css'
 
@@ -61,6 +62,11 @@ export function LandingPage() {
   }
 
   const goDoctor = () => {
+    if (isDevAuthBypass()) {
+      adoptDevRole('DOCTOR')
+      navigate('/clinician')
+      return
+    }
     if (user?.role === 'DOCTOR') navigate('/clinician')
     else navigate('/login')
   }

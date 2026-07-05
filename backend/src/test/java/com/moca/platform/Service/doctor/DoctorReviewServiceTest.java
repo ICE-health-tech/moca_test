@@ -17,7 +17,8 @@ import com.moca.platform.DataLayer.protocol.session.TestSessionStatus;
 import com.moca.platform.DataLayer.protocol.auth.UserEntity;
 import com.moca.platform.DataLayer.protocol.auth.UserRepository;
 import com.moca.platform.DataLayer.protocol.auth.UserRole;
-import com.moca.platform.Dto.doctor.ApproveReviewRequest;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.moca.platform.Service.session.MocaAutoGrader;
 import com.moca.platform.shared.Decimals;
 
 import java.time.Instant;
@@ -31,7 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.InjectMocks;
+import com.moca.platform.Dto.doctor.ApproveReviewRequest;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
@@ -57,7 +58,9 @@ class DoctorReviewUseCaseImplTest {
     @Mock
     PatientAssignmentRepository assignments;
 
-    @InjectMocks
+    MocaAutoGrader grader;
+    ObjectMapper objectMapper;
+
     DoctorReviewUseCaseImpl service;
 
     @Captor
@@ -70,6 +73,10 @@ class DoctorReviewUseCaseImplTest {
     void setUp() {
         doctorId = UUID.randomUUID();
         patientId = UUID.randomUUID();
+        objectMapper = new ObjectMapper();
+        grader = new MocaAutoGrader(objectMapper);
+        service = new DoctorReviewUseCaseImpl(
+                sessions, sectionScores, users, assignments, grader, objectMapper);
     }
 
     @Nested
@@ -197,6 +204,7 @@ class DoctorReviewUseCaseImplTest {
                     Decimals.score(5), Decimals.score(3), ScoringMode.AUTO);
             when(sectionScores.findBySessionIdOrderBySectionKeyAsc(sessionId))
                     .thenReturn(List.of(existingScore));
+            when(users.findById(patientId)).thenReturn(Optional.of(patient()));
 
             var request = new ApproveReviewRequest(List.of(
                     new ApproveReviewRequest.SectionScoreInput("section_1", Decimals.score(5))));
@@ -204,7 +212,7 @@ class DoctorReviewUseCaseImplTest {
             var result = service.approve(sessionId, request);
 
             assertThat(result.status()).isEqualTo(TestSessionStatus.FINALIZED);
-            assertThat(result.finalScore()).isEqualByComparingTo(Decimals.score(5));
+            assertThat(result.finalScore()).isEqualByComparingTo(Decimals.score(6));
         }
 
         @Test

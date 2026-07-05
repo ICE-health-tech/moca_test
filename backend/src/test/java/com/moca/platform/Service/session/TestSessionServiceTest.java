@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -11,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.moca.platform.DataLayer.protocol.session.TestSessionEntity;
 import com.moca.platform.DataLayer.protocol.session.TestSessionRepository;
+import com.moca.platform.DataLayer.protocol.session.TestSectionScoreRepository;
 import com.moca.platform.DataLayer.protocol.session.TestSessionStatus;
 import com.moca.platform.Dto.session.SubmitTestSessionRequest;
 import com.moca.platform.ObjectDb.ObjectStorageService;
@@ -40,12 +42,16 @@ class TestSessionUseCaseImplTest {
     TestSessionRepository sessions;
 
     @Mock
+    TestSectionScoreRepository sectionScores;
+
+    @Mock
     DrawingAnswerService drawingAnswers;
 
     @Mock
     ObjectStorageService storage;
 
     ObjectMapper objectMapper;
+    MocaAutoGrader grader;
     TestSessionUseCaseImpl service;
 
     @Captor
@@ -56,7 +62,9 @@ class TestSessionUseCaseImplTest {
     @BeforeEach
     void setUp() {
         objectMapper = new ObjectMapper();
-        service = new TestSessionUseCaseImpl(sessions, drawingAnswers, storage, objectMapper);
+        grader = new MocaAutoGrader(objectMapper);
+        service = new TestSessionUseCaseImpl(
+                sessions, sectionScores, drawingAnswers, grader, storage, objectMapper);
         patientId = UUID.randomUUID();
     }
 
@@ -77,6 +85,7 @@ class TestSessionUseCaseImplTest {
             verify(sessions).save(sessionCaptor.capture());
             assertThat(sessionCaptor.getValue().getEducationBonus())
                     .isEqualByComparingTo(java.math.BigDecimal.ONE);
+            verify(sectionScores).saveAll(anyList());
         }
 
         @Test

@@ -4,11 +4,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moca.platform.DataLayer.protocol.session.TestSessionEntity;
 import com.moca.platform.DataLayer.protocol.session.TestSessionRepository;
-import com.moca.platform.DataLayer.protocol.session.TestSessionStatus;
-import com.moca.platform.Dto.session.SubmitTestSessionRequest;
+import com.moca.platform.shared.Decimals;
+import com.moca.platform.DataLayer.protocol.session.TestSectionScoreRepository;
 import com.moca.platform.Dto.session.TestSessionSummaryDto;
-import com.moca.platform.ObjectDb.DrawingAnswerKeys;
+import com.moca.platform.Dto.session.SubmitTestSessionRequest;
 import com.moca.platform.ObjectDb.ObjectStorageService;
+import com.moca.platform.ObjectDb.DrawingAnswerKeys;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
@@ -21,17 +22,23 @@ import org.springframework.transaction.annotation.Transactional;
 public class TestSessionUseCaseImpl implements TestSessionUseCase {
 
     private final TestSessionRepository sessions;
+    private final TestSectionScoreRepository sectionScores;
     private final DrawingAnswerService drawingAnswers;
+    private final MocaAutoGrader grader;
     private final Optional<ObjectStorageService> storage;
     private final ObjectMapper objectMapper;
 
     public TestSessionUseCaseImpl(
             TestSessionRepository sessions,
+            TestSectionScoreRepository sectionScores,
             DrawingAnswerService drawingAnswers,
+            MocaAutoGrader grader,
             @Autowired(required = false) ObjectStorageService storage,
             ObjectMapper objectMapper) {
         this.sessions = sessions;
+        this.sectionScores = sectionScores;
         this.drawingAnswers = drawingAnswers;
+        this.grader = grader;
         this.storage = Optional.ofNullable(storage);
         this.objectMapper = objectMapper;
     }
@@ -51,7 +58,14 @@ public class TestSessionUseCaseImpl implements TestSessionUseCase {
                 storedAnswers,
                 request.educationYears(),
                 now);
+
+        MocaAutoGrader.GradeResult graded = grader.grade(request.rawAnswers(), request.educationYears());
+        session.applyProvisionalGrade(
+                Decimals.score(graded.provisional()),
+                graded.classification());
+
         sessions.save(session);
+        sectionScores.saveAll(grader.toEntities(sessionId, graded));
 
         return TestSessionSummaryDto.from(session);
     }
