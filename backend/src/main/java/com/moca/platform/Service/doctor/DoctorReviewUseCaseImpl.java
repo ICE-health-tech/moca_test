@@ -254,6 +254,7 @@ public class DoctorReviewUseCaseImpl implements DoctorReviewUseCase {
                 .map(UserEntity::getFullName)
                 .orElse("Bệnh nhân");
         Map<String, String> notesByKey = graderNotesFor(session);
+        Map<String, Object> rawAnswers = parseRawAnswers(session.getRawAnswers());
         List<SectionScoreDto> scores = sectionScores.findBySessionIdOrderBySectionKeyAsc(session.getId()).stream()
                 .map(row -> new SectionScoreDto(
                         row.getSectionKey(),
@@ -274,6 +275,7 @@ public class DoctorReviewUseCaseImpl implements DoctorReviewUseCase {
                 session.getFinalScore(),
                 session.getClassification(),
                 session.getEducationBonus(),
+                rawAnswers,
                 scores);
     }
 

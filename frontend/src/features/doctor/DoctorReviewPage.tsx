@@ -7,6 +7,11 @@ import { api } from '../../shared/lib/axios'
 import { formatDateTimeVi } from '../../shared/utils/format'
 import { useApproveReview, useSessionDetail } from './useDoctorQueries'
 import type { SectionScore } from './doctor.api'
+import {
+  SectionPatientEvidence,
+  canvasInlineSrc,
+  type RawAnswers,
+} from './sectionEvidence'
 
 const DOCTOR_NAV = [
   { to: '/clinician', label: 'Dashboard' },
@@ -41,15 +46,23 @@ function DrawingThumb({
   sessionId,
   answerKey,
   label,
+  inlineSrc,
 }: {
   sessionId: string
   answerKey: string
   label: string
+  inlineSrc?: string | null
 }) {
-  const [src, setSrc] = React.useState<string | null>(null)
+  const [src, setSrc] = React.useState<string | null>(inlineSrc ?? null)
   const [failed, setFailed] = React.useState(false)
 
   React.useEffect(() => {
+    if (inlineSrc) {
+      setSrc(inlineSrc)
+      setFailed(false)
+      return
+    }
+
     let objectUrl: string | null = null
     let cancelled = false
 
@@ -70,7 +83,7 @@ function DrawingThumb({
       cancelled = true
       if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
-  }, [sessionId, answerKey])
+  }, [sessionId, answerKey, inlineSrc])
 
   return (
     <figure className="flex flex-col items-center gap-1">
@@ -91,12 +104,14 @@ function DrawingThumb({
 function SectionReviewCard({
   sessionId,
   section,
+  rawAnswers,
   value,
   onChange,
   readOnly,
 }: {
   sessionId: string
   section: SectionScore
+  rawAnswers: RawAnswers | undefined
   value: number | null
   onChange: (v: number) => void
   readOnly: boolean
@@ -125,14 +140,19 @@ function SectionReviewCard({
               sessionId={sessionId}
               answerKey={d.key}
               label={d.label}
+              inlineSrc={canvasInlineSrc(rawAnswers, d.key)}
             />
           ))}
         </div>
       )}
 
-      <div className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-600">
-        {section.note ?? 'Không có ghi chú'}
-      </div>
+      <SectionPatientEvidence sectionKey={section.sectionKey} rawAnswers={rawAnswers} />
+
+      {section.note && (
+        <div className="mt-3 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600">
+          {section.note}
+        </div>
+      )}
 
       {section.autoScore !== null && (
         <div className="mt-4 rounded-2xl bg-violet-50 p-4 text-sm text-violet-900">
@@ -349,6 +369,7 @@ export function DoctorReviewPage() {
                 key={section.sectionKey}
                 sessionId={session.id}
                 section={section}
+                rawAnswers={session.rawAnswers}
                 value={scores[section.sectionKey] ?? null}
                 onChange={(v) => setSectionScore(section.sectionKey, v)}
                 readOnly={isFinalized}

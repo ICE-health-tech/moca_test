@@ -49,6 +49,7 @@ export type SessionDetail = {
   finalScore: number | null
   classification: string | null
   educationBonus: number | null
+  rawAnswers: Record<string, unknown>
   sectionScores: SectionScore[]
 }
 
@@ -139,6 +140,42 @@ const MOCK_SESSION_DETAIL: Record<string, SessionDetail> = {
     finalScore: null,
     classification: null,
     educationBonus: 1,
+    rawAnswers: {
+      section_2_naming: {
+        n1: { text: 'sư tử' },
+        n2: { text: 'tê giác' },
+        n3: { text: 'lạc đà' },
+      },
+      section_4a_forward: '21854',
+      section_4a_backward: '247',
+      section_4b: { score: 1, omissions: 0, falseAlarms: 1 },
+      section_4c: [93, 86, 79, 72, 65],
+      section_5: {
+        '0': { transcript: 'Tôi chỉ biết rằng Jean là người phải chịu trách nhiệm.', score: 1 },
+        '1': { transcript: 'Con mèo luôn nằm dưới gầm bàn khi con chó ở trong phòng.', score: 1 },
+      },
+      section_6: { count: 12, score: 1 },
+      section_6_text: 'face flag fine food ...',
+      section_7: {
+        '0': { pair: 'Tàu hỏa — Máy bay', text: 'phương tiện giao thông' },
+        '1': { pair: 'Thước kẻ — Cái cân', text: 'dụng cụ đo' },
+      },
+      section_8_inputs: {
+        word_1: { text: 'vẻ mặt', used_cue: false },
+        word_2: { text: '', used_cue: true },
+        word_3: { text: 'nhà thờ', used_cue: false },
+        word_4: { text: 'hoa cúc', used_cue: false },
+        word_5: { text: 'màu đỏ', used_cue: false },
+      },
+      section_9: {
+        date: 5,
+        month: 7,
+        year: 2026,
+        day: 'Chủ Nhật',
+        place: 'phòng khám',
+        city: 'Hà Nội',
+      },
+    },
     sectionScores: [
       { sectionKey: 'visuospatial', label: 'Thị giác – không gian', maxPoints: 5, autoScore: 4, doctorScore: null, note: 'Đồng hồ thiếu kim phút đúng 11:10' },
       { sectionKey: 'naming', label: 'Gọi tên con vật', maxPoints: 3, autoScore: 3, doctorScore: null, note: null },
@@ -161,6 +198,42 @@ const MOCK_SESSION_DETAIL: Record<string, SessionDetail> = {
     finalScore: null,
     classification: null,
     educationBonus: 1,
+    rawAnswers: {
+      section_2_naming: {
+        n1: { text: 'sư tử' },
+        n2: { text: 'tê giác' },
+        n3: { text: 'lạc đà' },
+      },
+      section_4a_forward: '21854',
+      section_4a_backward: '247',
+      section_4b: { score: 1, omissions: 0, falseAlarms: 1 },
+      section_4c: [93, 86, 79, 72, 65],
+      section_5: {
+        '0': { transcript: 'Tôi chỉ biết rằng Jean là người phải chịu trách nhiệm.', score: 1 },
+        '1': { transcript: 'Con mèo luôn nằm dưới gầm bàn khi con chó ở trong phòng.', score: 1 },
+      },
+      section_6: { count: 12, score: 1 },
+      section_6_text: 'face flag fine food ...',
+      section_7: {
+        '0': { pair: 'Tàu hỏa — Máy bay', text: 'phương tiện giao thông' },
+        '1': { pair: 'Thước kẻ — Cái cân', text: 'dụng cụ đo' },
+      },
+      section_8_inputs: {
+        word_1: { text: 'vẻ mặt', used_cue: false },
+        word_2: { text: '', used_cue: true },
+        word_3: { text: 'nhà thờ', used_cue: false },
+        word_4: { text: 'hoa cúc', used_cue: false },
+        word_5: { text: 'màu đỏ', used_cue: false },
+      },
+      section_9: {
+        date: 5,
+        month: 7,
+        year: 2026,
+        day: 'Chủ Nhật',
+        place: 'phòng khám',
+        city: 'Hà Nội',
+      },
+    },
     sectionScores: [
       { sectionKey: 'visuospatial', label: 'Thị giác – không gian', maxPoints: 5, autoScore: 4, doctorScore: null, note: null },
       { sectionKey: 'naming', label: 'Gọi tên con vật', maxPoints: 3, autoScore: 3, doctorScore: null, note: null },
@@ -183,6 +256,42 @@ const MOCK_SESSION_DETAIL: Record<string, SessionDetail> = {
     finalScore: null,
     classification: null,
     educationBonus: 1,
+    rawAnswers: {
+      section_2_naming: {
+        n1: { text: 'sư tử' },
+        n2: { text: 'tê giác' },
+        n3: { text: 'lạc đà' },
+      },
+      section_4a_forward: '21854',
+      section_4a_backward: '247',
+      section_4b: { score: 1, omissions: 0, falseAlarms: 1 },
+      section_4c: [93, 86, 79, 72, 65],
+      section_5: {
+        '0': { transcript: 'Tôi chỉ biết rằng Jean là người phải chịu trách nhiệm.', score: 1 },
+        '1': { transcript: 'Con mèo luôn nằm dưới gầm bàn khi con chó ở trong phòng.', score: 1 },
+      },
+      section_6: { count: 12, score: 1 },
+      section_6_text: 'face flag fine food ...',
+      section_7: {
+        '0': { pair: 'Tàu hỏa — Máy bay', text: 'phương tiện giao thông' },
+        '1': { pair: 'Thước kẻ — Cái cân', text: 'dụng cụ đo' },
+      },
+      section_8_inputs: {
+        word_1: { text: 'vẻ mặt', used_cue: false },
+        word_2: { text: '', used_cue: true },
+        word_3: { text: 'nhà thờ', used_cue: false },
+        word_4: { text: 'hoa cúc', used_cue: false },
+        word_5: { text: 'màu đỏ', used_cue: false },
+      },
+      section_9: {
+        date: 5,
+        month: 7,
+        year: 2026,
+        day: 'Chủ Nhật',
+        place: 'phòng khám',
+        city: 'Hà Nội',
+      },
+    },
     sectionScores: [
       { sectionKey: 'visuospatial', label: 'Thị giác – không gian', maxPoints: 5, autoScore: 3, doctorScore: null, note: 'Vẽ khối lập phương thiếu nét' },
       { sectionKey: 'naming', label: 'Gọi tên con vật', maxPoints: 3, autoScore: 2, doctorScore: null, note: 'Không nhận ra tê giác' },

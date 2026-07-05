@@ -4,6 +4,7 @@ import com.moca.platform.DataLayer.protocol.session.TestSessionStatus;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public record SessionDetailDto(
@@ -17,5 +18,6 @@ public record SessionDetailDto(
         BigDecimal finalScore,
         String classification,
         BigDecimal educationBonus,
+        Map<String, Object> rawAnswers,
         List<SectionScoreDto> sectionScores) {
 }
