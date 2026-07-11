@@ -1,4 +1,4 @@
-import { Brain, LogOut, Settings } from 'lucide-react'
+import { ArrowLeft, Brain, LogOut, Settings } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../../stores/authStore'
 
@@ -13,7 +13,13 @@ export function MocaAppHeader({ title = 'MoCA Assessment' }: Props) {
   const logout = useAuthStore((s) => s.logout)
   const navigate = useNavigate()
 
-  const handleLogout = () => {
+const handleGoBack =()=>{
+  navigate(-1);
+
+}
+
+
+const handleLogout = () => {
     logout()
     navigate('/entry', { replace: true })
   }
@@ -27,6 +33,10 @@ export function MocaAppHeader({ title = 'MoCA Assessment' }: Props) {
         <h1 className="truncate text-lg font-semibold text-primary md:text-xl">{title}</h1>
       </div>
       <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
+      <button type="button" className={actionClass} onClick={handleGoBack} aria-label="Trở về">
+          <ArrowLeft className="h-5 w-5" />
+          <span className="hidden sm:inline">Trở về</span>
+        </button>
         <button type="button" className={actionClass} onClick={handleSettings} aria-label="Cài đặt">
           <Settings className="h-5 w-5" />
           <span className="hidden sm:inline">Cài đặt</span>
