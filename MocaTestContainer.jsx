@@ -1558,13 +1558,16 @@ function gradeTest(set, answers, educationYears) {
   });
   push("Phần 7 · Tư duy trừu tượng", 2, s7, "auto");
 
-  // Section 8 — delayed recall (free recall only)
+  // Section 8 — delayed recall (free recall; order does not matter)
   const recall = answers.section_8_inputs || {};
+  const recalled = new Set(
+    Object.values(recall)
+      .filter((cur) => cur && !cur.used_cue && (cur.text || "").trim())
+      .map((cur) => normalize(cur.text)),
+  );
   let s8 = 0;
-  set.memory_words.forEach((w, i) => {
-    const cur = recall[`word_${i + 1}`];
-    if (!cur || cur.used_cue) return; // cued recall = 0 pt (correct_with_cue)
-    if (normalize(cur.text) === normalize(w.word)) s8++;
+  set.memory_words.forEach((w) => {
+    if (recalled.has(normalize(w.word))) s8++;
   });
   push("Phần 8 · Nhớ lại có trì hoãn", 5, s8, "auto");
 

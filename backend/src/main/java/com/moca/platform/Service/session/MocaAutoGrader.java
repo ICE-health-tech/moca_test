@@ -11,9 +11,11 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -176,16 +178,27 @@ public class MocaAutoGrader {
     private SectionGrade gradeDelayedRecall(JsonNode root) {
         JsonNode recall = root.path("section_8_inputs");
         String[] words = {"ve mat", "vai nhung", "nha tho", "hoa cuc", "mau do"};
+
+        Set<String> recalled = new HashSet<>();
+        if (recall.isObject()) {
+            recall.fields().forEachRemaining(entry -> {
+                JsonNode cur = entry.getValue();
+                if (cur == null || !cur.isObject()) {
+                    return;
+                }
+                if (cur.path("used_cue").asBoolean(false)) {
+                    return;
+                }
+                String text = normalize(cur.path("text").asText(""));
+                if (!text.isEmpty()) {
+                    recalled.add(text);
+                }
+            });
+        }
+
         int score = 0;
-        for (int i = 0; i < words.length; i++) {
-            JsonNode cur = recall.path("word_" + (i + 1));
-            if (cur.isMissingNode()) {
-                continue;
-            }
-            if (cur.path("used_cue").asBoolean(false)) {
-                continue;
-            }
-            if (normalize(cur.path("text").asText("")).equals(words[i])) {
+        for (String word : words) {
+            if (recalled.contains(word)) {
                 score++;
             }
         }

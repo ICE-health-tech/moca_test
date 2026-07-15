@@ -114,7 +114,7 @@ export function PatientResultsSummary({
           {isPending ? (
             <div className="mt-2 inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
               <AlertTriangle size={14} />
-              Chờ bác sĩ duyệt
+              Chờ bác sĩ duyệt, đây không phải là quết quả chính thức!
             </div>
           ) : (
             <div className="mt-2 inline-flex items-center gap-2 rounded-full bg-secondary-container px-3 py-1 text-xs font-semibold text-on-secondary-container">
