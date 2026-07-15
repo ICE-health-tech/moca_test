@@ -194,7 +194,10 @@ function AudioGuide({ text, speech, autoLines }) {
       <button
         type="button"
         onClick={() => (speech.speaking ? speech.cancel() : speech.speak(lines))}
-        className="moca-btn-primary"
+        className={
+          "moca-btn-primary " +
+          (speech.speaking ? "!bg-red-400 hover:!bg-red-500" : "!bg-blue-600 hover:!bg-blue-700")
+        }
         style={{ minHeight: 34, fontSize: "0.8125rem" }}
         disabled={!speech.supported || !speech.vietnameseVoiceAvailable}
         aria-label="Phát hướng dẫn bằng giọng nói"
@@ -811,9 +814,9 @@ function RecorderButton({ label, value, onSaved, onStart, compact = false, showP
   };
 
   const variantStyles = {
-    default: "bg-blue-600 text-black hover:bg-blue-700",
-    primary: "bg-blue-600 text-black hover:bg-blue-700",
-    secondary: "bg-gray-100 border-2 border-gray-300 text-gray-700 hover:bg-gray-50",
+    default: "bg-blue-600 text-white hover:bg-blue-700",
+    primary: "bg-blue-600 text-white hover:bg-blue-700",
+    secondary: "border-2 border-gray-300 bg-blue-500 text-gray-800 hover:bg-gray-50",
   };
 
   const buttonClass = variantStyles[variant] || variantStyles.default;
@@ -880,9 +883,9 @@ function RecorderButton({ label, value, onSaved, onStart, compact = false, showP
           <button
             type="button"
             onClick={beginRecording}
-            className={`min-h-[60px] flex-1 inline-flex items-center justify-center gap-3 rounded-2xl px-6 py-4 text-white text-xl font-bold ${buttonClass}`}
+            className={`min-h-[60px] flex-1 inline-flex items-center justify-center gap-3 rounded-2xl px-6 py-4 text-xl font-bold ${buttonClass}`}
           >
-            <Mic size={20} /> Bấm để ghi âm
+            <Mic size={20} /> {value ? "Ghi lại" : "Bấm để ghi âm"}
           </button>
         ) : (
           <button
@@ -1108,6 +1111,7 @@ function LetterAVigilance({ speech, onComplete }) {
 }
 
 function Section4Attention({ speech, answers, setAnswer, onNext, onBack }) {
+  const [sub, setSub] = useState(0);
   const fwd = answers.section_4a_forward || "";
   const bwd = answers.section_4a_backward || "";
   const serial = answers.section_4c || ["", "", "", "", ""];
@@ -1119,102 +1123,130 @@ function Section4Attention({ speech, answers, setAnswer, onNext, onBack }) {
     setAnswer("section_4c", next);
   };
 
+  const handleNext = () => {
+    if (sub < 2) setSub(sub + 1);
+    else onNext();
+  };
+  const handleBack = () => {
+    if (sub > 0) setSub(sub - 1);
+    else onBack();
+  };
+
+  const subSteps = [
+    {
+      title: "4A · Nhắc lại dãy số",
+      instruction:
+        "Nghe dãy số rồi nhắc lại theo chiều xuôi. Sau đó nghe dãy thứ hai và nhắc lại theo chiều ngược.",
+    },
+    {
+      title: "4B · Phản xạ chữ A",
+      instruction: "Nhấn nút bên dưới mỗi khi thấy chữ A trên màn hình.",
+    },
+    {
+      title: "4C · Trừ 7 liên tiếp từ 100",
+      instruction:
+        "Bắt đầu từ 100, lấy 100 trừ 7, rồi tiếp tục trừ 7 cho mỗi ô.",
+    },
+  ];
+  const current = subSteps[sub];
+
   return (
     <>
-      <div className="w-full max-w-[80rem] mx-auto">
-        <p className="moca-badge">Phần 4 / 9 · Sự chú ý</p>
-        <h1 className="moca-title">Sự chú ý</h1>
-        <AudioGuide
-          text="Phần này gồm ba bài: nhắc lại dãy số, phản xạ với chữ A, và phép trừ liên tiếp."
-          speech={speech}
-        />
-        {/* 4A digit spans */}
-        <div className="grid grid-cols-3 gap-3">
-       
-        <div className="rounded-2xl border border-gray-200 p-5 mb-5">
-          <p className="font-semibold text-gray-700 mb-3">4A · Nhắc lại dãy số</p>
-          <div className="space-y-3">
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-medium text-gray-500">Nhắc lại theo chiều xuôi</span>
-                <button
-                  onClick={() => speech.speak(ATTENTION.digitsForward.join(" ... "))}
-                  className="inline-flex items-center gap-1 text-blue-600 font-medium text-xs"
-                >
-                  <Volume2 size={14} /> Nghe dãy số
-                </button>
+      <StepShell
+        badge={`Phần 4 / 9 · Sự chú ý (${sub + 1}/3)`}
+        title={current.title}
+        instruction={current.instruction}
+        speech={speech}
+      >
+        {sub === 0 && (
+          <div className="rounded-2xl border border-gray-200 p-5">
+            <div className="space-y-5">
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-medium text-gray-500">Nhắc lại theo chiều xuôi</span>
+                  <button
+                    type="button"
+                    onClick={() => speech.speak(ATTENTION.digitsForward.join(" ... "))}
+                    className="inline-flex items-center gap-1 text-blue-600 font-medium text-xs"
+                  >
+                    <Volume2 size={14} /> Nghe dãy số
+                  </button>
+                </div>
+                <div className="rounded-2xl bg-gray-50 border border-gray-200 px-4 py-3 mb-3 text-center font-mono text-xl font-bold text-gray-900 spacing-loose">
+                  {ATTENTION.digitsForward.join("  —  ")}
+                </div>
+                <TextFieldWithRecording
+                  value={fwd}
+                  inputMode="numeric"
+                  onChange={(e) => setAnswer("section_4a_forward", e.target.value)}
+                  placeholder="Nhập dãy số vừa nghe…"
+                  label="Ghi âm dãy số xuôi"
+                  recordingValue={answers.section_4a_forward_recording}
+                  onRecordingSaved={(u) => setAnswer("section_4a_forward_recording", u)}
+                />
               </div>
-              <div className="rounded-2xl bg-gray-50 border border-gray-200 px-4 py-3 mb-3 text-center font-mono text-xl font-bold text-gray-900 spacing-loose">
-                {ATTENTION.digitsForward.join("  —  ")}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-medium text-gray-500">Nhắc lại theo chiều ngược</span>
+                  <button
+                    type="button"
+                    onClick={() => speech.speak(ATTENTION.digitsBackwardRead.join(" ... "))}
+                    className="inline-flex items-center gap-1 text-blue-600 font-medium text-xs"
+                  >
+                    <Volume2 size={14} /> Nghe dãy số
+                  </button>
+                </div>
+                <div className="rounded-2xl bg-gray-50 border border-gray-200 px-4 py-3 mb-3 text-center font-mono text-xl font-bold text-gray-900">
+                  {ATTENTION.digitsBackwardRead.join("  —  ")}
+                </div>
+                <TextFieldWithRecording
+                  value={bwd}
+                  inputMode="numeric"
+                  onChange={(e) => setAnswer("section_4a_backward", e.target.value)}
+                  placeholder="Nhập theo thứ tự ngược lại…"
+                  label="Ghi âm dãy số ngược"
+                  recordingValue={answers.section_4a_backward_recording}
+                  onRecordingSaved={(u) => setAnswer("section_4a_backward_recording", u)}
+                />
               </div>
-              <TextFieldWithRecording
-                value={fwd}
-                inputMode="numeric"
-                onChange={(e) => setAnswer("section_4a_forward", e.target.value)}
-                placeholder="Nhập dãy số vừa nghe…"
-                label="Ghi âm dãy số xuôi"
-                recordingValue={answers.section_4a_forward_recording}
-                onRecordingSaved={(u) => setAnswer("section_4a_forward_recording", u)}
-              />
-            </div>
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-gray-500">Nhắc lại theo chiều ngược</span>
-                <button
-                  onClick={() => speech.speak(ATTENTION.digitsBackwardRead.join(" ... "))}
-                  className="inline-flex items-center gap-1 text-blue-600 font-medium text-xs"
-                >
-                  <Volume2 size={14} /> Nghe dãy số
-                </button>
-              </div>
-              <div className="rounded-2xl bg-gray-50 border border-gray-200 px-4 py-3 mb-3 text-center font-mono text-xl font-bold text-gray-900">
-                {ATTENTION.digitsBackwardRead.join("  —  ")}
-              </div>
-              <TextFieldWithRecording
-                value={bwd}
-                inputMode="numeric"
-                onChange={(e) => setAnswer("section_4a_backward", e.target.value)}
-                placeholder="Nhập theo thứ tự ngược lại…"
-                label="Ghi âm dãy số ngược"
-                recordingValue={answers.section_4a_backward_recording}
-                onRecordingSaved={(u) => setAnswer("section_4a_backward_recording", u)}
-              />
             </div>
           </div>
-        </div>
+        )}
 
-        {/* 4B vigilance */}
-        <div className="mb-5">
-          <LetterAVigilance speech={speech} onComplete={(r) => setAnswer("section_4b", r)} />
-          {letterA && (
-            <p className="mt-2 text-sm text-gray-500">
-              Số lỗi ghi nhận: {letterA.errors} (bỏ sót {letterA.omissions}, nhấn nhầm {letterA.falseAlarms}).
-            </p>
-          )}
-        </div>
-
-        {/* 4C serial 7s */}
-        <div className="rounded-2xl border border-gray-200 p-5">
-          <p className="font-semibold text-gray-700 mb-1">4C · Trừ 7 liên tiếp từ 100</p>
-          <p className="text-gray-600 text-sm mb-4">
-            Bắt đầu từ 100, lấy 100 trừ 7, rồi tiếp tục trừ 7 cho mỗi ô.
-          </p>
-          <div className="grid grid-cols-5 gap-2">
-            {serial.map((val, i) => (
-              <input
-                key={i}
-                value={val}
-                inputMode="numeric"
-                onChange={(e) => setSerial(i, e.target.value)}
-                className="rounded-xl border-2 border-gray-200 py-3 text-center text-xl font-bold focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none"
-                placeholder={i === 0 ? "−7" : ""}
-              />
-            ))}
+        {sub === 1 && (
+          <div>
+            <LetterAVigilance speech={speech} onComplete={(r) => setAnswer("section_4b", r)} />
+            {letterA && (
+              <p className="mt-2 text-sm text-gray-500">
+                Số lỗi ghi nhận: {letterA.errors} (bỏ sót {letterA.omissions}, nhấn nhầm{" "}
+                {letterA.falseAlarms}).
+              </p>
+            )}
           </div>
-        </div>
-      </div>
-      </div>
-      <NavFooter onBack={onBack} onNext={onNext} />
+        )}
+
+        {sub === 2 && (
+          <div className="rounded-2xl border border-gray-200 p-5">
+            <div className="grid grid-cols-5 gap-2">
+              {serial.map((val, i) => (
+                <input
+                  key={i}
+                  value={val}
+                  inputMode="numeric"
+                  onChange={(e) => setSerial(i, e.target.value)}
+                  className="rounded-xl border-2 border-gray-200 py-3 text-center text-xl font-bold focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none"
+                  placeholder={i === 0 ? "−7" : ""}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+      </StepShell>
+      <NavFooter
+        onBack={handleBack}
+        onNext={handleNext}
+        nextLabel={sub < 2 ? "Câu tiếp" : "Phần tiếp theo"}
+      />
     </>
   );
 }

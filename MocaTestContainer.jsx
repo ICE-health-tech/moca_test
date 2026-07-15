@@ -251,7 +251,12 @@ function AudioGuide({ text, speech, autoLines }) {
       <button
         type="button"
         onClick={() => (speech.speaking ? speech.cancel() : speech.speak(lines))}
-        className="mt-5 w-full min-h-[60px] inline-flex items-center justify-center gap-3 rounded-2xl bg-blue-600 px-6 py-4 text-white text-xl font-bold hover:bg-blue-700 active:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:opacity-50"
+        className={
+          "mt-5 w-full min-h-[60px] inline-flex items-center justify-center gap-3 rounded-2xl px-6 py-4 text-white text-xl font-bold focus:outline-none disabled:opacity-50 " +
+          (speech.speaking
+            ? "bg-red-400 hover:bg-red-500 active:bg-red-500 focus:ring-4 focus:ring-red-200"
+            : "bg-blue-600 hover:bg-blue-700 active:bg-blue-800 focus:ring-4 focus:ring-blue-200")
+        }
         disabled={!speech.supported}
         aria-label="Phát hướng dẫn bằng giọng nói"
       >
