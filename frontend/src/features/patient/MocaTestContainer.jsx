@@ -1777,9 +1777,9 @@ function ResultsSummary({ set, answers, profile, onRestart, submitStatus, onRetr
     <div className="moca-shell py-8 pb-12">
       <div className="moca-card">
         {submitStatus === "success" && (
-          <div className="mb-6 rounded-2xl bg-[#f0fdf4] border border-[#bbf7d0] px-5 py-4 text-center">
-            <p className="text-xl font-bold text-[#166534]">Cảm ơn bạn đã tham gia bài kiểm tra!</p>
-            <p className="mt-1 text-base text-[#15803d]">
+          <div className="mb-6 rounded-2xl bg-[#fefce8] border border-[#fde047] px-5 py-4 text-center">
+            <p className="text-xl font-bold text-[#a16207]">Cảm ơn bạn đã tham gia bài kiểm tra!</p>
+            <p className="mt-1 text-base text-[#ca8a04]">
               Bài làm đã được gửi — bác sĩ sẽ duyệt và thông báo kết quả chính thức.
             </p>
           </div>
