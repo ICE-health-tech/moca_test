@@ -13,6 +13,11 @@ import {
   type RawAnswers,
 } from './sectionEvidence'
 
+/**
+ * Score source colors (clinician review UI):
+ * - Amber / yellow = AI suggestion only (assist, not final)
+ * - Emerald / green = doctor score (source of truth when reviewing)
+ */
 const DOCTOR_NAV = [
   { to: '/clinician', label: 'Dashboard' },
   { to: '/clinician/patients', label: 'Bệnh nhân' },
@@ -154,6 +159,7 @@ function SectionReviewCard({
         </div>
       )}
 
+      {/* Yellow/amber: AI assist suggestion — doctor may override */}
       {section.autoScore !== null && (
         <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
           <p className="flex items-center gap-2 font-semibold text-amber-800">
@@ -177,6 +183,7 @@ function SectionReviewCard({
         </div>
       )}
 
+      {/* Green/emerald: doctor judgment — final section score when approved */}
       <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4">
         <p className="flex items-center gap-2 text-sm font-semibold text-emerald-800">
           <span className="rounded-md bg-emerald-200 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-emerald-900">
@@ -418,6 +425,7 @@ export function DoctorReviewPage() {
       {!isFinalized && sectionsToReview.length > 0 && (
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur lg:static lg:mt-6 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
           <div className="mx-auto flex max-w-5xl flex-wrap gap-3">
+            {/* Amber = copy AI into doctor fields; green = commit doctor scores */}
             <button
               type="button"
               onClick={handleAcceptAi}

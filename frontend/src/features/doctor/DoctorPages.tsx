@@ -28,6 +28,7 @@ export function DoctorDashboardPage() {
           <p className="text-sm text-slate-500">Bệnh nhân</p>
           <p className="text-3xl font-bold text-blue-600">12</p>
         </GlassCard>
+        {/* Amber/yellow = AI assist (same convention as DoctorReviewPage) */}
         <GlassCard>
           <p className="text-sm text-slate-500">
             <span className="mr-1.5 rounded-md bg-amber-200 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-900">
