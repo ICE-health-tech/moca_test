@@ -29,13 +29,18 @@ export function DoctorDashboardPage() {
           <p className="text-3xl font-bold text-blue-600">12</p>
         </GlassCard>
         <GlassCard>
-          <p className="text-sm text-slate-500">AI hỗ trợ</p>
+          <p className="text-sm text-slate-500">
+            <span className="mr-1.5 rounded-md bg-amber-200 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-900">
+              AI
+            </span>
+            hỗ trợ
+          </p>
           <button
             type="button"
             onClick={() => setAiOn(!aiOn)}
-            className="mt-1 flex items-center gap-2 text-lg font-bold text-violet-700"
+            className="mt-1 flex items-center gap-2 text-lg font-bold text-amber-700"
           >
-            <Sparkles size={20} />
+            <Sparkles size={20} className="text-amber-600" />
             {aiOn ? 'Bật' : 'Tắt'}
           </button>
         </GlassCard>
