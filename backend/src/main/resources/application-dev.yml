@@ -24,6 +24,15 @@ redis:
 minio:
   enabled: ${MINIO_ENABLED:false}
 
+whisper:
+  enabled: ${WHISPER_ENABLED:false}
+  provider: ${WHISPER_PROVIDER:openai}
+  base-url: ${WHISPER_BASE_URL:https://api.openai.com/v1}
+  api-key: ${WHISPER_API_KEY:}
+  model: ${WHISPER_MODEL:whisper-1}
+  language: ${WHISPER_LANGUAGE:vi}
+  timeout-ms: ${WHISPER_TIMEOUT_MS:60000}
+
 # Local dev only — skip JWT; never enable in prod.
 security:
   dev-bypass-auth: true

@@ -41,3 +41,13 @@ redis:
 
 minio:
   enabled: ${MINIO_ENABLED:false}
+
+# Whisper ASR — section 5 AI assist (see backend/.env.example)
+whisper:
+  enabled: ${WHISPER_ENABLED:false}
+  provider: ${WHISPER_PROVIDER:openai}
+  base-url: ${WHISPER_BASE_URL:https://api.openai.com/v1}
+  api-key: ${WHISPER_API_KEY:}
+  model: ${WHISPER_MODEL:whisper-1}
+  language: ${WHISPER_LANGUAGE:vi}
+  timeout-ms: ${WHISPER_TIMEOUT_MS:60000}

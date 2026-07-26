@@ -40,9 +40,32 @@ Health check: `GET http://localhost:8080/api/health`
 | Migration (lõi) | `src/main/resources/db/migration/` |
 | Entity + DAO | `DataLayer/protocol/` |
 | Object storage | `ObjectDb/` — MinIO (Section 1 drawings) |
+| AI / Whisper | `AiLayer/` + `Service/ai/` + `Controller/ai/` |
 | API | `*Controller.java` |
 | Business logic | `*Service.java` (next slice) |
 
 ## Env
 
 Copy `.env.example` → `.env` (local only, not committed).
+
+### Whisper (AI ASR for section 5)
+
+| Mode | How to connect |
+|------|----------------|
+| OpenAI | Set `WHISPER_ENABLED=true`, `WHISPER_PROVIDER=openai`, put key in `WHISPER_API_KEY` |
+| Local | `docker compose --profile local-whisper up -d` then `WHISPER_PROVIDER=local`, `WHISPER_BASE_URL=http://localhost:9002` |
+
+Bound in Spring as `whisper.*` → `WhisperProperties` (`AiLayer`). Keep API keys off the frontend.
+
+**API**
+
+```bash
+# Config check (no secrets)
+curl -s http://localhost:8080/api/ai/whisper/status
+
+# Transcribe audio (multipart field name: file)
+curl -s -X POST http://localhost:8080/api/ai/whisper/transcribe \
+  -F "file=@sample.webm;type=audio/webm"
+```
+
+Flow: `WhisperController` → `WhisperUseCase` → `HttpWhisperClient` (openai `/audio/transcriptions` or local `/asr`).
