@@ -279,14 +279,28 @@ function TextFieldWithRecording({ value, onChange, placeholder, label, inputMode
 
 /* =============================================================================
    DrawingCanvas — stroke-history engine with Undo / Clear (CLAUDE.md §6.1)
+   -----------------------------------------------------------------------------
+   Strokes are mirrored in a module-level store keyed by canvas id so navigating
+   away (Quay lại / Câu tiếp) and remounting does not wipe the patient's drawing.
    ========================================================================== */
-function DrawingCanvas({ width = 560, height = 360, backgroundDraw, onStrokesChange }) {
+function cloneStrokes(strokes) {
+  if (!strokes?.length) return [];
+  return strokes.map((stroke) => stroke.map((p) => ({ x: p.x, y: p.y })));
+}
+
+const drawingStrokeStore = new Map();
+
+function clearDrawingStrokeStore() {
+  drawingStrokeStore.clear();
+}
+
+function DrawingCanvas({ storageKey, width = 560, height = 360, backgroundDraw, onStrokesChange }) {
   const canvasRef = useRef(null);
   const ctxRef = useRef(null);
-  const strokesRef = useRef([]); // array of strokes; each stroke = [{x,y}, ...]
+  const strokesRef = useRef(cloneStrokes(storageKey ? drawingStrokeStore.get(storageKey) : null));
   const currentRef = useRef(null);
   const drawingRef = useRef(false);
-  const [strokeCount, setStrokeCount] = useState(0);
+  const [strokeCount, setStrokeCount] = useState(() => strokesRef.current.length);
 
   const repaint = useCallback(() => {
     const ctx = ctxRef.current;
@@ -312,11 +326,17 @@ function DrawingCanvas({ width = 560, height = 360, backgroundDraw, onStrokesCha
     const canvas = canvasRef.current;
     if (!canvas) return;
     ctxRef.current = canvas.getContext("2d");
+    // Reload strokes when this canvas identity changes (1A ↔ 1B ↔ 1C).
+    strokesRef.current = cloneStrokes(storageKey ? drawingStrokeStore.get(storageKey) : null);
+    setStrokeCount(strokesRef.current.length);
     repaint();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [repaint]);
+  }, [repaint, storageKey]);
 
   const commit = () => {
+    if (storageKey) {
+      drawingStrokeStore.set(storageKey, cloneStrokes(strokesRef.current));
+    }
     setStrokeCount(strokesRef.current.length);
     if (onStrokesChange) {
       const canvas = canvasRef.current;
@@ -473,7 +493,7 @@ function CubeReference() {
 /* =============================================================================
    SECTION 1 — Visuospatial / Executive (3 canvas sub-tasks)
    ========================================================================== */
-function Section1Visuospatial({ speech, answers, setAnswer, onNext, onBack }) {
+function Section1Visuospatial({ speech, answers, setAnswer, onNext, onBack, enterFromBack }) {
   const sub = [
     {
       key: "section_1a_trail_canvas",
@@ -499,7 +519,8 @@ function Section1Visuospatial({ speech, answers, setAnswer, onNext, onBack }) {
       ref: null,
     },
   ];
-  const [i, setI] = useState(0);
+  // Re-entering from a later section via "Quay lại" resumes the last sub-task (1C).
+  const [i, setI] = useState(() => (enterFromBack ? sub.length - 1 : 0));
   const current = sub[i];
 
   const handleNext = () => {
@@ -514,7 +535,7 @@ function Section1Visuospatial({ speech, answers, setAnswer, onNext, onBack }) {
   return (
     <>
       <StepShell
-        badge="Phần 1 / 9 · Thị giác – không gian"
+        badge={`Phần 1 / 9 · Thị giác – không gian (${i + 1}/${sub.length})`}
         title={current.title}
         instruction={current.instr}
         speech={speech}
@@ -527,6 +548,7 @@ function Section1Visuospatial({ speech, answers, setAnswer, onNext, onBack }) {
             </div>
             <DrawingCanvas
               key={current.key}
+              storageKey={current.key}
               width={420}
               height={360}
               onStrokesChange={(s) => setAnswer(current.key, s.dataUrl)}
@@ -534,7 +556,8 @@ function Section1Visuospatial({ speech, answers, setAnswer, onNext, onBack }) {
           </div>
         ) : (
           <DrawingCanvas
-            key={current.key} 
+            key={current.key}
+            storageKey={current.key}
             width={560}
             height={360}
             backgroundDraw={current.bg}
@@ -550,63 +573,72 @@ function Section1Visuospatial({ speech, answers, setAnswer, onNext, onBack }) {
   );
 }
 
-/* Section 2 — Naming animals (PDF line drawings: lion, rhino, camel) */
-function Section2Naming({ set, speech, answers, setAnswer, onNext, onBack }) {
+/* Section 2 — Naming animals, one animal per screen (2A / 2B / 2C) */
+function Section2Naming({ set, speech, answers, setAnswer, onNext, onBack, enterFromBack }) {
+  const animals = set.naming;
+  const [i, setI] = useState(() => (enterFromBack ? Math.max(0, animals.length - 1) : 0));
+  const animal = animals[i];
   const value = answers.section_2_naming || {};
   const update = (id, text) =>
     setAnswer("section_2_naming", { ...value, [id]: { text, mode: "text" } });
 
+  const handleNext = () => {
+    if (i < animals.length - 1) setI(i + 1);
+    else onNext();
+  };
+  const handleBack = () => {
+    if (i > 0) setI(i - 1);
+    else onBack();
+  };
+
+  const letter = String.fromCharCode(65 + i); // A, B, C…
+
   return (
     <>
       <StepShell
-        badge="Phần 2 / 9 · Gọi tên con vật"
-        title="Con vật này tên là gì?"
-        instruction="Hãy nhìn từng hình và cho biết tên con vật. Bạn có thể gõ tên hoặc ghi âm và nghe lại."
+        badge={`Phần 2 / 9 · Gọi tên con vật (${i + 1}/${animals.length})`}
+        title={`2${letter} · Con vật này tên là gì?`}
+        instruction="Hãy nhìn hình và cho biết tên con vật. Bạn có thể gõ tên hoặc ghi âm và nghe lại."
         speech={speech}
       >
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        
-          {set.naming.map((animal, idx) => (
-              <div key={animal.id} className="rounded-2xl border border-gray-200 p-5">
-                <div className="flex flex-col gap-4">
-                  <div className="rounded-2xl bg-white border border-gray-200 p-4 flex flex-col items-center justify-center min-h-[120px]">
-                    <img
-                      src={animal.image}
-                      alt={`Con vật ${idx + 1}`}
-                      className="max-h-[80px] w-full object-contain"
-                      loading="lazy"
-                    />
-                  </div>
-                  <div className="flex flex-col justify-center">
-                    <label className="block text-base font-bold text-gray-700 mb-2">
-                      Tên con vật {idx + 1}
-                    </label>
-                    <div className="space-y-3">
-                      <TextField
-                        value={value[animal.id]?.text || ""}
-                        onChange={(e) => update(animal.id, e.target.value)}
-                        placeholder="Nhập tên con vật…"
-                      />
-                      <RecorderButton
-                        label="Ghi âm tên con vật"
-                        value={value[animal.id]?.recording}
-                        onSaved={(u) =>
-                          setAnswer("section_2_naming", {
-                            ...value,
-                            [animal.id]: { ...value[animal.id], recording: u },
-                          })
-                        }
-                        compact={true}
-                        showPlayback={true}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-          ))}
+        <div className="rounded-2xl border border-gray-200 p-5 sm:p-6">
+          <div className="rounded-2xl bg-white border border-gray-200 p-6 flex items-center justify-center min-h-[220px] sm:min-h-[280px] mb-6">
+            <img
+              src={animal.image}
+              alt={`Con vật ${i + 1}`}
+              className="max-h-[200px] sm:max-h-[260px] w-full object-contain"
+              loading="lazy"
+            />
+          </div>
+          <label className="block text-base font-bold text-gray-700 mb-2">
+            Tên con vật {i + 1}
+          </label>
+          <div className="space-y-3">
+            <TextField
+              value={value[animal.id]?.text || ""}
+              onChange={(e) => update(animal.id, e.target.value)}
+              placeholder="Nhập tên con vật…"
+            />
+            <RecorderButton
+              label="Ghi âm tên con vật"
+              value={value[animal.id]?.recording}
+              onSaved={(u) =>
+                setAnswer("section_2_naming", {
+                  ...value,
+                  [animal.id]: { ...value[animal.id], recording: u },
+                })
+              }
+              compact={true}
+              showPlayback={true}
+            />
+          </div>
         </div>
       </StepShell>
-      <NavFooter onBack={onBack} onNext={onNext} />
+      <NavFooter
+        onBack={handleBack}
+        onNext={handleNext}
+        nextLabel={i < animals.length - 1 ? "Câu tiếp" : "Phần tiếp theo"}
+      />
     </>
   );
 }
@@ -1110,28 +1142,7 @@ function LetterAVigilance({ speech, onComplete }) {
   );
 }
 
-function Section4Attention({ speech, answers, setAnswer, onNext, onBack }) {
-  const [sub, setSub] = useState(0);
-  const fwd = answers.section_4a_forward || "";
-  const bwd = answers.section_4a_backward || "";
-  const serial = answers.section_4c || ["", "", "", "", ""];
-  const letterA = answers.section_4b;
-  const imageTestIndex=[1,2];
-  const setSerial = (i, val) => {
-    const next = [...serial];
-    next[i] = val;
-    setAnswer("section_4c", next);
-  };
-
-  const handleNext = () => {
-    if (sub < 2) setSub(sub + 1);
-    else onNext();
-  };
-  const handleBack = () => {
-    if (sub > 0) setSub(sub - 1);
-    else onBack();
-  };
-
+function Section4Attention({ speech, answers, setAnswer, onNext, onBack, enterFromBack }) {
   const subSteps = [
     {
       title: "4A · Nhắc lại dãy số",
@@ -1148,6 +1159,27 @@ function Section4Attention({ speech, answers, setAnswer, onNext, onBack }) {
         "Bắt đầu từ 100, lấy 100 trừ 7, rồi tiếp tục trừ 7 cho mỗi ô.",
     },
   ];
+  // Re-entering from phần 5 via "Quay lại" resumes 4C, not 4A.
+  const [sub, setSub] = useState(() => (enterFromBack ? subSteps.length - 1 : 0));
+  const fwd = answers.section_4a_forward || "";
+  const bwd = answers.section_4a_backward || "";
+  const serial = answers.section_4c || ["", "", "", "", ""];
+  const letterA = answers.section_4b;
+  const setSerial = (i, val) => {
+    const next = [...serial];
+    next[i] = val;
+    setAnswer("section_4c", next);
+  };
+
+  const handleNext = () => {
+    if (sub < subSteps.length - 1) setSub(sub + 1);
+    else onNext();
+  };
+  const handleBack = () => {
+    if (sub > 0) setSub(sub - 1);
+    else onBack();
+  };
+
   const current = subSteps[sub];
 
   return (
@@ -1245,7 +1277,7 @@ function Section4Attention({ speech, answers, setAnswer, onNext, onBack }) {
       <NavFooter
         onBack={handleBack}
         onNext={handleNext}
-        nextLabel={sub < 2 ? "Câu tiếp" : "Phần tiếp theo"}
+        nextLabel={sub < subSteps.length - 1 ? "Câu tiếp" : "Phần tiếp theo"}
       />
     </>
   );
@@ -1925,6 +1957,9 @@ export default function MocaTestContainer() {
   const [currentStep, setCurrentStep] = useState(1); // 1..9
   const [answers, setAnswers] = useState({});
   const [section3EndTime, setSection3EndTime] = useState(null);
+  // Tracks whether the latest step change was forward or back so multi-part
+  // sections can resume at the last sub-task when the patient presses Quay lại.
+  const navDirectionRef = useRef("forward");
 
   const set = QUESTION_BANK[profile.selected_set_id];
   const setAnswer = useCallback((key, value) => {
@@ -1933,21 +1968,25 @@ export default function MocaTestContainer() {
 
   const next = () => {
     speech.cancel();
+    navDirectionRef.current = "forward";
     if (currentStep >= 9) setPhase("results");
     else setCurrentStep((s) => s + 1);
   };
   const back = () => {
     speech.cancel();
+    navDirectionRef.current = "back";
     if (currentStep <= 1) setPhase("start");
     else setCurrentStep((s) => s - 1);
   };
 
   const restart = () => {
     speech.cancel();
+    clearDrawingStrokeStore();
     setAnswers({});
     setSection3EndTime(null);
     setCurrentStep(1);
     setPhase("start");
+    navDirectionRef.current = "forward";
     submitStarted.current = false;
     setSubmitStatus("idle");
   };
@@ -1979,7 +2018,16 @@ export default function MocaTestContainer() {
 
   const progress = phase === "results" ? 100 : ((currentStep - 1) / 9) * 100;
 
-  const sectionProps = { set, speech, answers, setAnswer, onNext: next, onBack: back };
+  const enterFromBack = navDirectionRef.current === "back";
+  const sectionProps = {
+    set,
+    speech,
+    answers,
+    setAnswer,
+    onNext: next,
+    onBack: back,
+    enterFromBack,
+  };
 
   return (
     <div className="moca-exam">
@@ -1992,10 +2040,12 @@ export default function MocaTestContainer() {
           onHome={() => navigate('/patient')}
           onStart={() => {
             // Randomly assign the test set — the patient never chooses it.
+            clearDrawingStrokeStore();
             setProfile((p) => ({ ...p, selected_set_id: pickRandomSetId() }));
             setCurrentStep(1);
             setAnswers({});
             setSection3EndTime(null);
+            navDirectionRef.current = "forward";
             setPhase("exam");
           }}
         />
@@ -2018,7 +2068,7 @@ export default function MocaTestContainer() {
           )}
           {currentStep === 4 && <Section4Attention {...sectionProps} />}
           {currentStep === 5 && <Section5Sentences {...sectionProps} />}
-          {currentStep === 6 && <Section6Fluency {...sectionProps} />} 
+          {currentStep === 6 && <Section6Fluency {...sectionProps} />}
           {currentStep === 7 && <Section7Abstraction {...sectionProps} />}
           {currentStep === 8 && (
             <Section8Recall {...sectionProps} section3EndTime={section3EndTime} />
