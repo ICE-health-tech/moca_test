@@ -13,6 +13,11 @@ import {
   type RawAnswers,
 } from './sectionEvidence'
 
+/**
+ * Score source colors (clinician review UI):
+ * - Amber / yellow = AI suggestion only (assist, not final)
+ * - Emerald / green = doctor score (source of truth when reviewing)
+ */
 const DOCTOR_NAV = [
   { to: '/clinician', label: 'Dashboard' },
   { to: '/clinician/patients', label: 'Bệnh nhân' },
@@ -154,26 +159,40 @@ function SectionReviewCard({
         </div>
       )}
 
+      {/* Yellow/amber: AI assist suggestion — doctor may override */}
       {section.autoScore !== null && (
-        <div className="mt-4 rounded-2xl bg-violet-50 p-4 text-sm text-violet-900">
-          <p className="flex items-center gap-2 font-semibold">
-            <Sparkles size={16} /> Gợi ý AI
+        <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+          <p className="flex items-center gap-2 font-semibold text-amber-800">
+            <Sparkles size={16} className="text-amber-600" />
+            <span className="rounded-md bg-amber-200 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-amber-900">
+              AI
+            </span>
+            Gợi ý AI
           </p>
           <p className="mt-1">
-            Điểm tự động: {section.autoScore}/{section.maxPoints}
+            Điểm AI:{' '}
+            <strong className="text-amber-700">
+              {section.autoScore}/{section.maxPoints}
+            </strong>
             {isAdjusted && (
-              <span className="ml-2 text-amber-600">
-                (đã điều chỉnh thành {value}/{section.maxPoints})
+              <span className="ml-2 text-emerald-700">
+                (bác sĩ chỉnh thành {value}/{section.maxPoints})
               </span>
             )}
           </p>
         </div>
       )}
 
-      <div className="mt-4">
-        <p className="text-sm font-semibold text-slate-700">Điểm bác sĩ</p>
+      {/* Green/emerald: doctor judgment — final section score when approved */}
+      <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4">
+        <p className="flex items-center gap-2 text-sm font-semibold text-emerald-800">
+          <span className="rounded-md bg-emerald-200 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-emerald-900">
+            BS
+          </span>
+          Điểm bác sĩ
+        </p>
         {readOnly ? (
-          <p className="mt-1 text-lg font-bold text-slate-900">
+          <p className="mt-1 text-lg font-bold text-emerald-700">
             {section.doctorScore ?? section.autoScore ?? 0}/{section.maxPoints}
           </p>
         ) : (
@@ -182,22 +201,22 @@ function SectionReviewCard({
               type="button"
               aria-label="Giảm điểm"
               onClick={() => bump(-1)}
-              className="flex h-12 w-12 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+              className="flex h-12 w-12 items-center justify-center rounded-xl border border-emerald-200 bg-white text-emerald-800 hover:bg-emerald-50"
             >
               <Minus size={18} />
             </button>
-            <span className="min-w-[3rem] text-center text-xl font-bold text-slate-900">
+            <span className="min-w-[3rem] text-center text-xl font-bold text-emerald-700">
               {displayValue}
             </span>
             <button
               type="button"
               aria-label="Tăng điểm"
               onClick={() => bump(1)}
-              className="flex h-12 w-12 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+              className="flex h-12 w-12 items-center justify-center rounded-xl border border-emerald-200 bg-white text-emerald-800 hover:bg-emerald-50"
             >
               <Plus size={18} />
             </button>
-            <span className="text-sm text-slate-500">/ {section.maxPoints}</span>
+            <span className="text-sm text-emerald-700/70">/ {section.maxPoints}</span>
           </div>
         )}
       </div>
@@ -220,13 +239,19 @@ function ScoreOverviewBar({
   return (
     <GlassCard className="mb-4">
       <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 text-sm text-slate-600">
-        <span>
-          Điểm tự động:{' '}
-          <strong className="text-slate-900">{autoScore}</strong>
+        <span className="inline-flex items-center gap-1.5">
+          <span className="rounded-md bg-amber-200 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-900">
+            AI
+          </span>
+          Điểm AI:{' '}
+          <strong className="text-amber-700">{autoScore}</strong>
         </span>
-        <span>
-          Bạn chấm:{' '}
-          <strong className="text-slate-900">{doctorScore}</strong>
+        <span className="inline-flex items-center gap-1.5">
+          <span className="rounded-md bg-emerald-200 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-900">
+            BS
+          </span>
+          Điểm bác sĩ:{' '}
+          <strong className="text-emerald-700">{doctorScore}</strong>
         </span>
         <span>
           Tổng:{' '}
@@ -400,10 +425,11 @@ export function DoctorReviewPage() {
       {!isFinalized && sectionsToReview.length > 0 && (
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur lg:static lg:mt-6 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
           <div className="mx-auto flex max-w-5xl flex-wrap gap-3">
+            {/* Amber = copy AI into doctor fields; green = commit doctor scores */}
             <button
               type="button"
               onClick={handleAcceptAi}
-              className="rounded-2xl border border-violet-200 bg-violet-50 px-5 py-3 font-bold text-violet-700 hover:bg-violet-100"
+              className="rounded-2xl border border-amber-300 bg-amber-50 px-5 py-3 font-bold text-amber-800 hover:bg-amber-100"
             >
               Chấp nhận gợi ý AI
             </button>
@@ -411,7 +437,7 @@ export function DoctorReviewPage() {
               type="button"
               onClick={handleApprove}
               disabled={approveMutation.isPending}
-              className="rounded-2xl bg-blue-600 px-5 py-3 font-bold text-white hover:bg-blue-700 disabled:opacity-50"
+              className="rounded-2xl bg-emerald-600 px-5 py-3 font-bold text-white hover:bg-emerald-700 disabled:opacity-50"
             >
               {approveMutation.isPending ? 'Đang duyệt…' : 'Lưu & hoàn tất duyệt'}
             </button>
