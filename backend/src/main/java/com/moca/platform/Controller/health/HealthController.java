@@ -1,4 +1,5 @@
 package com.moca.platform.Controller.health;
+import com.moca.platform.AiLayer.WhisperProperties;
 import com.moca.platform.CacheLayer.RedisCacheService;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -11,9 +12,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class HealthController {
 
     private final RedisCacheService redisCache;
+    private final WhisperProperties whisper;
 
-    public HealthController(RedisCacheService redisCache) {
+    public HealthController(RedisCacheService redisCache, WhisperProperties whisper) {
         this.redisCache = redisCache;
+        this.whisper = whisper;
     }
 
     @GetMapping("/health")
@@ -22,6 +25,7 @@ public class HealthController {
         body.put("status", "ok");
         body.put("service", "moca-platform");
         body.put("redis", redisStatus());
+        body.put("whisper", whisper.isEnabled() ? whisper.getProvider() : "disabled");
         return body;
     }
 
