@@ -52,6 +52,11 @@ services:
       MINIO_AUTO_CREATE_BUCKET: ${MINIO_AUTO_CREATE_BUCKET:-false}
       REDIS_ENABLED: "false"
       JWT_SECRET: ${JWT_SECRET}
+      SPEECH_ENABLED: ${SPEECH_ENABLED:-false}
+      SPEECH_API_KEY: ${SPEECH_API_KEY:-}
+      SPEECH_BASE_URL: ${SPEECH_BASE_URL:-https://api.openai.com}
+      SPEECH_MODEL: ${SPEECH_MODEL:-whisper-1}
+      SPEECH_LANGUAGE: ${SPEECH_LANGUAGE:-vi}
     depends_on:
       postgres:
         condition: service_healthy
