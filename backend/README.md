@@ -46,3 +46,12 @@ Health check: `GET http://localhost:8080/api/health`
 ## Env
 
 Copy `.env.example` → `.env` (local only, not committed).
+
+### Whisper (AI ASR for section 5)
+
+| Mode | How to connect |
+|------|----------------|
+| OpenAI | Set `WHISPER_ENABLED=true`, `WHISPER_PROVIDER=openai`, put key in `WHISPER_API_KEY` |
+| Local | `docker compose --profile local-whisper up -d` then `WHISPER_PROVIDER=local`, `WHISPER_BASE_URL=http://localhost:9002` |
+
+Bound in Spring as `whisper.*` → `WhisperProperties` (`AiLayer`). Keep API keys off the frontend.

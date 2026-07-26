@@ -79,6 +79,26 @@ services:
     volumes:
       - moca_minio_data:/data
 
+  # Local Whisper ASR — MoCA section 5 (vi). Port 9002 avoids MinIO :9000.
+  #   docker compose --profile local-whisper up -d
+  # Then in backend/.env:
+  #   WHISPER_ENABLED=true
+  #   WHISPER_PROVIDER=local
+  #   WHISPER_BASE_URL=http://localhost:9002
+  #   WHISPER_MODEL=base
+  whisper:
+    profiles: ["local-whisper"]
+    image: onerahmet/openai-whisper-asr-webservice:latest-cpu
+    container_name: moca-whisper
+    environment:
+      ASR_MODEL: base
+      ASR_ENGINE: openai_whisper
+    ports:
+      - "9002:9000"
+    volumes:
+      - moca_whisper_cache:/root/.cache/whisper
+
 volumes:
   moca_pg_data:
   moca_minio_data:
+  moca_whisper_cache:
