@@ -24,6 +24,13 @@ redis:
 minio:
   enabled: ${MINIO_ENABLED:false}
 
+speech:
+  enabled: ${SPEECH_ENABLED:false}
+  api-key: ${SPEECH_API_KEY:}
+  base-url: ${SPEECH_BASE_URL:https://api.openai.com}
+  model: ${SPEECH_MODEL:whisper-1}
+  language: ${SPEECH_LANGUAGE:vi}
+
 # Local dev only — skip JWT; never enable in prod.
 security:
   dev-bypass-auth: true

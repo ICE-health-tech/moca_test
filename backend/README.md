@@ -33,6 +33,22 @@ Fetch a drawing for doctor review:
 
 Health check: `GET http://localhost:8080/api/health`
 
+### Speech AI (optional)
+
+Vietnamese STT for MoCA sentence repetition via OpenAI Whisper (or compatible API):
+
+```bash
+# in backend/.env
+SPEECH_ENABLED=true
+SPEECH_API_KEY=sk-...
+# optional: SPEECH_BASE_URL / SPEECH_MODEL / SPEECH_LANGUAGE=vi
+```
+
+- `GET /api/speech/status` — whether AI STT is configured  
+- `POST /api/speech/transcribe` — `{ audioBase64, expectedSentence? }` → transcript + score  
+
+When disabled, the patient UI falls back to browser Web Speech.
+
 ## Stack
 
 | Layer | Path |

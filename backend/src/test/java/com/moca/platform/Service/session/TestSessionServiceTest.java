@@ -16,6 +16,7 @@ import com.moca.platform.DataLayer.protocol.session.TestSectionScoreRepository;
 import com.moca.platform.DataLayer.protocol.session.TestSessionStatus;
 import com.moca.platform.Dto.session.SubmitTestSessionRequest;
 import com.moca.platform.ObjectDb.ObjectStorageService;
+import com.moca.platform.Service.speech.SpeechAnswerEnrichmentService;
 
 import java.time.Instant;
 import java.util.Map;
@@ -29,6 +30,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * TestSessionUseCaseImpl tests — Mockito replaces DB + drawing + storage.
@@ -36,6 +39,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * <p>Flow: mock repositories → call service → assert result or exception.
  */
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class TestSessionUseCaseImplTest {
 
     @Mock
@@ -46,6 +50,9 @@ class TestSessionUseCaseImplTest {
 
     @Mock
     DrawingAnswerService drawingAnswers;
+
+    @Mock
+    SpeechAnswerEnrichmentService speechEnrichment;
 
     @Mock
     ObjectStorageService storage;
@@ -63,8 +70,15 @@ class TestSessionUseCaseImplTest {
     void setUp() {
         objectMapper = new ObjectMapper();
         grader = new MocaAutoGrader(objectMapper);
+        when(speechEnrichment.enrichSection5(any())).thenAnswer(invocation -> invocation.getArgument(0));
         service = new TestSessionUseCaseImpl(
-                sessions, sectionScores, drawingAnswers, grader, storage, objectMapper);
+                sessions,
+                sectionScores,
+                drawingAnswers,
+                speechEnrichment,
+                grader,
+                storage,
+                objectMapper);
         patientId = UUID.randomUUID();
     }
 

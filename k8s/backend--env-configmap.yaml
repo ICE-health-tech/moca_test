@@ -17,6 +17,11 @@ data:
   REDIS_PORT: "16379"
   REDIS_SSL: "false"
   SERVER_PORT: "8080"
+  SPEECH_ENABLED: "false"
+  SPEECH_API_KEY: ""
+  SPEECH_BASE_URL: https://api.openai.com
+  SPEECH_MODEL: whisper-1
+  SPEECH_LANGUAGE: vi
   SPRING_PROFILES_ACTIVE: dev
 kind: ConfigMap
 metadata:

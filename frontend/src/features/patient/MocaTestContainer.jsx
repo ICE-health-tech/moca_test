@@ -15,6 +15,7 @@ import {
   scoreSentenceRepetition,
   startParallelAsr,
 } from "../../shared/lib/sentenceAsr";
+import { blobToDataUrl, transcribeAudio } from "./speech.api";
 
 /* =============================================================================
    MoCA PLATFORM — 9-Section Test Workflow (patient exam experience)
@@ -695,7 +696,10 @@ function useMockRecorder() {
   return { recording, start, stop };
 }
 
-/** MediaRecorder + Web Speech API (vi-VN) for sentence repetition scoring */
+/**
+ * MediaRecorder + AI Whisper STT (preferred) with browser Web Speech fallback.
+ * Saves a durable audioDataUrl so submit can re-score on the server.
+ */
 function useSentenceRecorder() {
   const [recording, setRecording] = useState(false);
   const [processing, setProcessing] = useState(false);
@@ -711,12 +715,13 @@ function useSentenceRecorder() {
     } catch (_) {}
   }, []);
 
-  const start = useCallback(async (onComplete) => {
+  const start = useCallback(async (onComplete, expectedSentence) => {
     try { window.speechSynthesis?.cancel(); } catch (_) {}
     try {
       if (!navigator.mediaDevices || !window.MediaRecorder) throw new Error("unsupported");
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
+      // Browser ASR still runs as a fast fallback if AI is off / fails.
       asrRef.current = startParallelAsr(stream, "vi-VN");
 
       const rec = new MediaRecorder(stream);
@@ -726,16 +731,52 @@ function useSentenceRecorder() {
         setProcessing(true);
         const blob = new Blob(chunksRef.current, { type: "audio/webm" });
         const blobUrl = URL.createObjectURL(blob);
-        let transcript = "";
-        let asrSupported = false;
-        if (asrRef.current?.supported) {
-          asrSupported = true;
-          transcript = await asrRef.current.stop();
+        let audioDataUrl = null;
+        try {
+          audioDataUrl = await blobToDataUrl(blob);
+        } catch (_) {
+          audioDataUrl = null;
         }
+
+        let browserTranscript = "";
+        let browserAsrSupported = false;
+        if (asrRef.current?.supported) {
+          browserAsrSupported = true;
+          browserTranscript = await asrRef.current.stop();
+        }
+
+        // Prefer server Whisper for Vietnamese clinical quality.
+        let transcript = browserTranscript;
+        let asrSupported = browserAsrSupported;
+        let asrProvider = browserAsrSupported && browserTranscript ? "browser" : "none";
+        let aiScore = null;
+        if (audioDataUrl) {
+          const ai = await transcribeAudio({
+            audioBase64: audioDataUrl,
+            contentType: "audio/webm",
+            filename: "section5.webm",
+            expectedSentence,
+          });
+          if (ai?.transcript) {
+            transcript = ai.transcript;
+            asrSupported = true;
+            asrProvider = ai.provider || "openai-whisper";
+            if (typeof ai.score === "number") aiScore = ai.score;
+          }
+        }
+
         if (streamRef.current) streamRef.current.getTracks().forEach((t) => t.stop());
         setRecording(false);
         setProcessing(false);
-        onComplete({ blobUrl, transcript, asrSupported, simulated: false });
+        onComplete({
+          blobUrl,
+          audioDataUrl,
+          transcript,
+          asrSupported,
+          asrProvider,
+          aiScore,
+          simulated: false,
+        });
       };
       rec.start();
       recorderRef.current = rec;
@@ -744,7 +785,15 @@ function useSentenceRecorder() {
       setRecording(true);
       setTimeout(() => {
         setRecording(false);
-        onComplete({ blobUrl: null, transcript: "", asrSupported: false, simulated: true });
+        onComplete({
+          blobUrl: null,
+          audioDataUrl: null,
+          transcript: "",
+          asrSupported: false,
+          asrProvider: "none",
+          aiScore: null,
+          simulated: true,
+        });
       }, 1200);
     }
   }, []);
@@ -765,13 +814,18 @@ function SentenceRecorder({ label, expectedSentence, value, onSaved }) {
 
   const handleComplete = (payload) => {
     const score =
-      payload.asrSupported && payload.transcript
-        ? scoreSentenceRepetition(expectedSentence, payload.transcript)
-        : 0;
+      typeof payload.aiScore === "number"
+        ? payload.aiScore
+        : payload.asrSupported && payload.transcript
+          ? scoreSentenceRepetition(expectedSentence, payload.transcript)
+          : 0;
     onSaved({
       blobUrl: payload.blobUrl,
+      audioDataUrl: payload.audioDataUrl || null,
+      expectedSentence,
       transcript: payload.transcript || "",
       asrSupported: payload.asrSupported,
+      asrProvider: payload.asrProvider || "none",
       score,
       simulated: payload.simulated,
     });
@@ -789,7 +843,11 @@ function SentenceRecorder({ label, expectedSentence, value, onSaved }) {
       </div>
 
       {!rec.recording && !rec.processing ? (
-        <button type="button" onClick={() => rec.start(handleComplete)} className="moca-btn-primary">
+        <button
+          type="button"
+          onClick={() => rec.start(handleComplete, expectedSentence)}
+          className="moca-btn-primary"
+        >
           <Mic size={18} /> Bấm để ghi âm
         </button>
       ) : (
@@ -800,7 +858,10 @@ function SentenceRecorder({ label, expectedSentence, value, onSaved }) {
 
       {scored && value.transcript && (
         <div className="mt-4 space-y-2">
-          <p className="text-sm font-medium text-[var(--moca-muted)]">Máy nghe được:</p>
+          <p className="text-sm font-medium text-[var(--moca-muted)]">
+            Máy nghe được
+            {value.asrProvider === "openai-whisper" ? " (AI)" : value.asrProvider === "browser" ? " (trình duyệt)" : ""}:
+          </p>
           <p className="text-base leading-relaxed text-[var(--moca-text)]">"{value.transcript}"</p>
           <p
             className={
@@ -814,7 +875,7 @@ function SentenceRecorder({ label, expectedSentence, value, onSaved }) {
 
       {hasRecording(value) && !value.asrSupported && !rec.processing && (
         <p className="mt-3 text-sm text-[var(--moca-muted)]">
-          Trình duyệt không hỗ trợ nhận giọng — bác sĩ chấm từ file ghi âm.
+          Chưa nhận được giọng nói — bác sĩ chấm từ file ghi âm.
         </p>
       )}
 

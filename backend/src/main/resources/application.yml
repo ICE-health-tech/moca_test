@@ -41,3 +41,12 @@ redis:
 
 minio:
   enabled: ${MINIO_ENABLED:false}
+
+# Server-side STT (OpenAI Whisper or compatible). Off by default.
+speech:
+  enabled: ${SPEECH_ENABLED:false}
+  api-key: ${SPEECH_API_KEY:}
+  base-url: ${SPEECH_BASE_URL:https://api.openai.com}
+  model: ${SPEECH_MODEL:whisper-1}
+  language: ${SPEECH_LANGUAGE:vi}
+  timeout-seconds: ${SPEECH_TIMEOUT_SECONDS:60}

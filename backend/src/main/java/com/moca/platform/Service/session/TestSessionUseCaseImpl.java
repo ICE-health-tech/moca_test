@@ -10,6 +10,7 @@ import com.moca.platform.Dto.session.TestSessionSummaryDto;
 import com.moca.platform.Dto.session.SubmitTestSessionRequest;
 import com.moca.platform.ObjectDb.ObjectStorageService;
 import com.moca.platform.ObjectDb.DrawingAnswerKeys;
+import com.moca.platform.Service.speech.SpeechAnswerEnrichmentService;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
@@ -24,6 +25,7 @@ public class TestSessionUseCaseImpl implements TestSessionUseCase {
     private final TestSessionRepository sessions;
     private final TestSectionScoreRepository sectionScores;
     private final DrawingAnswerService drawingAnswers;
+    private final SpeechAnswerEnrichmentService speechEnrichment;
     private final MocaAutoGrader grader;
     private final Optional<ObjectStorageService> storage;
     private final ObjectMapper objectMapper;
@@ -32,12 +34,14 @@ public class TestSessionUseCaseImpl implements TestSessionUseCase {
             TestSessionRepository sessions,
             TestSectionScoreRepository sectionScores,
             DrawingAnswerService drawingAnswers,
+            SpeechAnswerEnrichmentService speechEnrichment,
             MocaAutoGrader grader,
             @Autowired(required = false) ObjectStorageService storage,
             ObjectMapper objectMapper) {
         this.sessions = sessions;
         this.sectionScores = sectionScores;
         this.drawingAnswers = drawingAnswers;
+        this.speechEnrichment = speechEnrichment;
         this.grader = grader;
         this.storage = Optional.ofNullable(storage);
         this.objectMapper = objectMapper;
@@ -47,7 +51,9 @@ public class TestSessionUseCaseImpl implements TestSessionUseCase {
     @Transactional
     public TestSessionSummaryDto submit(SubmitTestSessionRequest request) {
         UUID sessionId = UUID.randomUUID();
-        String rawJson = toJson(request.rawAnswers());
+        // Prefer Whisper transcripts for Section 5 before grading / storage.
+        Map<String, Object> enrichedAnswers = speechEnrichment.enrichSection5(request.rawAnswers());
+        String rawJson = toJson(enrichedAnswers);
         String storedAnswers = drawingAnswers.offloadDrawings(sessionId, rawJson);
         Instant now = Instant.now();
 
@@ -59,7 +65,7 @@ public class TestSessionUseCaseImpl implements TestSessionUseCase {
                 request.educationYears(),
                 now);
 
-        MocaAutoGrader.GradeResult graded = grader.grade(request.rawAnswers(), request.educationYears());
+        MocaAutoGrader.GradeResult graded = grader.grade(enrichedAnswers, request.educationYears());
         session.applyProvisionalGrade(
                 Decimals.score(graded.provisional()),
                 graded.classification());

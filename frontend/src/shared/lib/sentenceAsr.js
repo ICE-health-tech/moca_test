@@ -99,12 +99,15 @@ export function startParallelAsr(stream, lang = 'vi-VN') {
 
 export function recordingBlobUrl(value) {
   if (!value) return null
-  if (typeof value === 'string') return value.startsWith('blob:') ? value : null
-  return value.blobUrl || null
+  if (typeof value === 'string') {
+    if (value.startsWith('blob:') || value.startsWith('data:audio')) return value
+    return null
+  }
+  return value.blobUrl || value.audioDataUrl || null
 }
 
 export function hasRecording(value) {
   if (!value) return false
   if (typeof value === 'string') return value.length > 0
-  return !!(value.blobUrl || value.transcript)
+  return !!(value.blobUrl || value.audioDataUrl || value.transcript)
 }
