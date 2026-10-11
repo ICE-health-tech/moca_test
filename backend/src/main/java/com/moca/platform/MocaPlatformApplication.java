@@ -8,6 +8,8 @@ import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 public class MocaPlatformApplication {
 
     public static void main(String[] args) {
+        var pid = ProcessHandle.current().pid();
+        System.out.println("Application PID: "+pid);
         SpringApplication.run(MocaPlatformApplication.class, args);
     }
 }
