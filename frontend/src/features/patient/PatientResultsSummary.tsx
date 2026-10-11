@@ -1,3 +1,6 @@
+import { useRef, useState } from 'react'
+import { jsPDF } from 'jspdf'
+import html2canvas from 'html2canvas-pro'
 import {
   AlertTriangle,
   CheckCircle2,
@@ -97,8 +100,58 @@ export function PatientResultsSummary({
   const isNormal = score >= 26
   const isPending = session.status === 'PENDING_REVIEW'
 
+  const rootRef = useRef<HTMLDivElement>(null)
+  const [exporting, setExporting] = useState(false)
+
+  async function handleExportPdf() {
+    const el = rootRef.current
+    if (!el || exporting) return
+    setExporting(true)
+
+    // html2canvas-pro renders the glass cards' backdrop-filter: blur(12px),
+    // which makes the whole PDF look soft. Disable it for the capture.
+    const noBackdrop = document.createElement('style')
+    noBackdrop.textContent =
+      '* { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }'
+    document.head.appendChild(noBackdrop)
+
+    try {
+      // Target ~240 DPI at A4 print width so text stays crisp.
+      const targetWidthPx = 1800
+      const scale = Math.max(2, Math.ceil(targetWidthPx / Math.max(el.offsetWidth, 1)))
+      const canvas = await html2canvas(el, {
+        scale,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+      })
+      const imgData = canvas.toDataURL('image/png')
+      const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' })
+      const pageWidth = pdf.internal.pageSize.getWidth()
+      const pageHeight = pdf.internal.pageSize.getHeight()
+      const margin = 10
+      const imgWidth = pageWidth - margin * 2
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
+      const printableHeight = pageHeight - margin * 2
+
+      let heightLeft = imgHeight
+      let position = margin
+      pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight)
+      heightLeft -= printableHeight
+      while (heightLeft > 0) {
+        position = margin - (imgHeight - heightLeft)
+        pdf.addPage()
+        pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight)
+        heightLeft -= printableHeight
+      }
+      pdf.save(`moca-ket-qua-${session.id}.pdf`)
+    } finally {
+      document.head.removeChild(noBackdrop)
+      setExporting(false)
+    }
+  }
+
   return (
-    <div className="space-y-4 stitch-fade-in">
+    <div ref={rootRef} className="space-y-4 stitch-fade-in">
       {/* Hero score */}
       <section className="grid grid-cols-1 gap-3 md:grid-cols-3">
         <div className="stitch-glass-card relative overflow-hidden rounded-xl p-4 md:col-span-2">
@@ -211,10 +264,12 @@ export function PatientResultsSummary({
           </button>
           <button
             type="button"
-            className="flex items-center justify-center gap-2 rounded-xl border-2 border-primary py-3 text-sm font-semibold text-primary active:scale-[0.98]"
+            onClick={handleExportPdf}
+            disabled={exporting}
+            className="flex items-center justify-center gap-2 rounded-xl border-2 border-primary py-3 text-sm font-semibold text-primary active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
           >
             <FileDown size={18} />
-            Xuất PDF
+            {exporting ? 'Đang xuất…' : 'Xuất PDF'}
           </button>
         </section>
       )}
