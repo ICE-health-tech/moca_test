@@ -22,11 +22,11 @@ export type AuthUser = {
 type AuthState = {
   user: AuthUser | null
   token: string | null
-  /** Patient: phone only → POST /api/auth/patient/login */
+  /** Patient: phone only → POST /api/v1/auth/patient/login */
   patientLogin: (phone: string) => Promise<void>
-  /** Clinician / admin: email + password → POST /api/auth/staff/login */
+  /** Clinician / admin: email + password → POST /api/v1/auth/staff/login */
   doctorLogin: (email: string, password: string) => Promise<void>
-  /** Clinician signup → POST /api/auth/staff/signup */
+  /** Clinician signup → POST /api/v1/auth/staff/signup */
   doctorSignup: (payload: {
     email: string
     password: string

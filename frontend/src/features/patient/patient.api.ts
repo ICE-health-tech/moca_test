@@ -59,7 +59,7 @@ export async function listPatientSessions(
 ): Promise<TestSessionSummary[]> {
   if (USE_MOCK) return MOCK_SESSIONS
   const { data } = await api.get<TestSessionSummary[]>(
-    `/api/patient/${patientId}/sessions`,
+    `/api/v1/patient/${patientId}/sessions`,
   )
   return data
 }
@@ -69,7 +69,7 @@ export async function listPatientAppointments(
 ): Promise<Appointment[]> {
   if (USE_MOCK) return MOCK_APPOINTMENTS
   const { data } = await api.get<Appointment[]>(
-    `/api/patient/${patientId}/appointments`,
+    `/api/v1/patient/${patientId}/appointments`,
   )
   return data
 }
@@ -79,7 +79,7 @@ export async function listDoctorOptions(
 ): Promise<DoctorOption[]> {
   if (USE_MOCK) return MOCK_DOCTORS
   const { data } = await api.get<DoctorOption[]>(
-    `/api/patient/${patientId}/clinicians`,
+    `/api/v1/patient/${patientId}/clinicians`,
   )
   return data
 }
@@ -89,7 +89,7 @@ export async function pickClinician(
   clinicianId: string,
 ): Promise<void> {
   if (USE_MOCK) return
-  await api.post(`/api/patient/${patientId}/clinicians`, { clinicianId })
+  await api.post(`/api/v1/patient/${patientId}/clinicians`, { clinicianId })
 }
 
 export type UpdatePatientProfilePayload = {
@@ -107,7 +107,7 @@ export async function updatePatientProfile(
   if (USE_MOCK) {
     return { ...getDevUser('PATIENT'), id: patientId, ...payload }
   }
-  const { data } = await api.patch(`/api/patient/${patientId}/profile`, payload)
+  const { data } = await api.patch(`/api/v1/patient/${patientId}/profile`, payload)
   return mapAuthUserDto(data)
 }
 
@@ -133,7 +133,7 @@ export async function submitTestSession(
     }
   }
   const { data } = await api.post<TestSessionSummary>(
-    '/api/test-sessions',
+    '/api/v1/test-sessions',
     payload,
   )
   return data

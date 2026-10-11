@@ -298,7 +298,7 @@
   "apiExamples": {
     "submitTestSession": {
       "method": "POST",
-      "path": "/api/test-sessions",
+      "path": "/api/v1/test-sessions",
       "body": {
         "patientId": "11111111-1111-4111-8111-111111111101",
         "setId": "MOCA_SET_1",
@@ -308,7 +308,7 @@
     },
     "loadDrawing": {
       "method": "GET",
-      "path": "/api/test-sessions/22222222-2222-4222-8222-222222222201/drawings/section_1a_trail_canvas",
+      "path": "/api/v1/test-sessions/22222222-2222-4222-8222-222222222201/drawings/section_1a_trail_canvas",
       "response": "image/png bytes from MinIO"
     }
   }

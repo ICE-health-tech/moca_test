@@ -113,7 +113,7 @@ export async function listDoctorReviews(
 ): Promise<ReviewQueueItem[]> {
   if (USE_MOCK) return MOCK_REVIEWS
   const { data } = await api.get<ReviewQueueItem[]>(
-    `/api/clinician/${doctorId}/reviews`,
+    `/api/v1/clinician/${doctorId}/reviews`,
   )
   return data
 }
@@ -123,7 +123,7 @@ export async function listDoctorPatients(
 ): Promise<DoctorPatient[]> {
   if (USE_MOCK) return MOCK_PATIENTS
   const { data } = await api.get<DoctorPatient[]>(
-    `/api/clinician/${doctorId}/patients`,
+    `/api/v1/clinician/${doctorId}/patients`,
   )
   return data
 }
@@ -314,7 +314,7 @@ export async function getSessionDetail(
     return detail
   }
   const { data } = await api.get<SessionDetail>(
-    `/api/clinician/reviews/${sessionId}`,
+    `/api/v1/clinician/reviews/${sessionId}`,
   )
   return data
 }
@@ -340,7 +340,7 @@ export async function approveReview(
     return detail
   }
   const { data } = await api.patch<SessionDetail>(
-    `/api/clinician/reviews/${sessionId}/approve`,
+    `/api/v1/clinician/reviews/${sessionId}/approve`,
     payload,
   )
   return data

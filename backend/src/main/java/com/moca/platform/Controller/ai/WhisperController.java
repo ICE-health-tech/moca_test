@@ -15,12 +15,12 @@ import org.springframework.web.multipart.MultipartFile;
  * Whisper ASR API — section 5 AI assist (yellow).
  *
  * <pre>
- * GET  /api/ai/whisper/status
- * POST /api/ai/whisper/transcribe  multipart field {@code file}
+ * GET  /api/v1/ai/whisper/status
+ * POST /api/v1/ai/whisper/transcribe  multipart field {@code file}
  * </pre>
  */
 @RestController
-@RequestMapping("/api/ai/whisper")
+@RequestMapping("/api/v1/ai/whisper")
 public class WhisperController {
 
     private final WhisperUseCase whisper;

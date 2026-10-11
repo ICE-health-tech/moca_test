@@ -44,12 +44,12 @@ const MOCK_DOCTORS: AdminDoctor[] = [
 
 export async function fetchAdminStats(): Promise<AdminStats> {
   if (USE_MOCK) return MOCK_STATS
-  const { data } = await api.get<AdminStats>('/api/admin/stats')
+  const { data } = await api.get<AdminStats>('/api/v1/admin/stats')
   return data
 }
 
 export async function listAdminDoctors(): Promise<AdminDoctor[]> {
   if (USE_MOCK) return MOCK_DOCTORS
-  const { data } = await api.get<AdminDoctor[]>('/api/admin/clinicians')
+  const { data } = await api.get<AdminDoctor[]>('/api/v1/admin/clinicians')
   return data
 }

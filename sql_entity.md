@@ -13,12 +13,12 @@
 
 | Table (SQL) | Entity (Java) | Status | API (planned / live) |
 |-------------|---------------|--------|----------------------|
-| `users` | `UserEntity` | ✅ mapped | `POST /api/auth/doctor/login`, `POST /api/auth/patient/login` |
+| `users` | `UserEntity` | ✅ mapped | `POST /api/v1/auth/doctor/login`, `POST /api/v1/auth/patient/login` |
 | `doctor_profiles` | `DoctorProfileEntity` | ❌ table only | — |
 | `patient_assignments` | `PatientAssignmentEntity` | ❌ table only | — |
 | `appointments` | `AppointmentEntity` | ❌ table only | — |
-| `moca_sets` | `MocaSetEntity` | ❌ docs seed only | `GET /api/moca-sets/active` |
-| `test_sessions` | `TestSessionEntity` | ✅ partial | `POST /api/test-sessions/submit` |
+| `moca_sets` | `MocaSetEntity` | ❌ docs seed only | `GET /api/v1/moca-sets/active` |
+| `test_sessions` | `TestSessionEntity` | ✅ partial | `POST /api/v1/test-sessions/submit` |
 | `test_section_scores` | `TestSectionScoreEntity` | ❌ table only | — |
 
 ## PostgreSQL enums

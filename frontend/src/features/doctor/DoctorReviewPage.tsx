@@ -72,7 +72,7 @@ function DrawingThumb({
     let cancelled = false
 
     api
-      .get(`/api/test-sessions/${sessionId}/drawings/${answerKey}`, {
+      .get(`/api/v1/test-sessions/${sessionId}/drawings/${answerKey}`, {
         responseType: 'blob',
       })
       .then((res) => {

@@ -265,8 +265,8 @@ Hibernate maps these with `@JdbcTypeCode(SqlTypes.NAMED_ENUM)` + `columnDefiniti
 **Java:** `MocaSetEntity` — slice tiếp
 
 **API (planned):**
-- `GET /api/moca-sets/active` — random 1 đề active (BN bắt đầu test)
-- `GET /api/moca-sets/{id}` — BS xem đề khi chấm
+- `GET /api/v1/moca-sets/active` — random 1 đề active (BN bắt đầu test)
+- `GET /api/v1/moca-sets/{id}` — BS xem đề khi chấm
 
 ---
 
@@ -433,7 +433,7 @@ Planned — same ref shape, `contentType: "audio/webm"`:
 
 | Endpoint | Purpose |
 |----------|---------|
-| `GET /api/test-sessions/{sessionId}/drawings/{answerKey}` | ✅ returns PNG bytes |
+| `GET /api/v1/test-sessions/{sessionId}/drawings/{answerKey}` | ✅ returns PNG bytes |
 
 Planned: `GET .../audio/{answerKey}` or presigned MinIO URLs for doctor playback.
 
@@ -522,15 +522,15 @@ com.moca.platform/
 
 | Endpoint | Status | Entity / storage |
 |----------|--------|------------------|
-| `POST /api/test-sessions` | ✅ | INSERT `test_sessions`, offload drawings |
-| `GET /api/test-sessions/{id}/drawings/{key}` | ✅ | MinIO via ref in `raw_answers` |
-| `GET /api/patient/sessions` | planned | `test_sessions WHERE patient_id = ?` |
-| `GET /api/doctor/reviews` | planned | `status = PENDING_REVIEW` |
-| `PATCH /api/doctor/reviews/{id}` | planned | UPDATE section scores + FINALIZED |
-| `GET /api/moca-sets/active` | planned | random row `WHERE is_active` |
-| `GET /api/moca-sets/{id}` | planned | PK lookup |
-| `GET /api/patient/appointments` | planned | `appointments` by patient |
-| `POST /api/patient/change-doctor` | planned | flip `patient_assignments.is_current` |
+| `POST /api/v1/test-sessions` | ✅ | INSERT `test_sessions`, offload drawings |
+| `GET /api/v1/test-sessions/{id}/drawings/{key}` | ✅ | MinIO via ref in `raw_answers` |
+| `GET /api/v1/patient/sessions` | planned | `test_sessions WHERE patient_id = ?` |
+| `GET /api/v1/doctor/reviews` | planned | `status = PENDING_REVIEW` |
+| `PATCH /api/v1/doctor/reviews/{id}` | planned | UPDATE section scores + FINALIZED |
+| `GET /api/v1/moca-sets/active` | planned | random row `WHERE is_active` |
+| `GET /api/v1/moca-sets/{id}` | planned | PK lookup |
+| `GET /api/v1/patient/appointments` | planned | `appointments` by patient |
+| `POST /api/v1/patient/change-doctor` | planned | flip `patient_assignments.is_current` |
 
 **Submit request body** (`SubmitTestSessionRequest`):
 
@@ -590,7 +590,7 @@ Flyway + `hibernate.ddl-auto: validate` — schema changes **only** via migratio
 ## 14. Implementation order
 
 1. **V2 migration** — `moca_sets` + seed + FK
-2. **MocaSetEntity** + `GET /api/moca-sets/active` (frontend drops hardcoded `QUESTION_BANK`)
+2. **MocaSetEntity** + `GET /api/v1/moca-sets/active` (frontend drops hardcoded `QUESTION_BANK`)
 3. **TestSectionScoreEntity** + **GradingService** (port `gradeTest()` from React)
 4. **TestSessionService** — insert section scores on submit
 5. **Doctor review** — PATCH section scores → FINALIZED

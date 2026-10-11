@@ -43,6 +43,15 @@ redis:
 minio:
   enabled: ${MINIO_ENABLED:false}
 
+# OpenAPI 3 docs (springdoc) — /swagger-ui.html, /v3/api-docs
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+  default-flat-param-object: false
+
 # Whisper ASR — section 5 AI assist (see backend/.env.example)
 whisper:
   enabled: ${WHISPER_ENABLED:false}

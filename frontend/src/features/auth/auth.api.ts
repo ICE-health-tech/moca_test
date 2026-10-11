@@ -46,7 +46,7 @@ export async function patientLogin(
   if (useMockApi()) {
     return { accessToken: 'dev-bypass', user: { ...getDevUser('PATIENT'), phoneNumber: phone } }
   }
-  const { data } = await api.post<LoginResponse>('/api/auth/patient/login', {
+  const { data } = await api.post<LoginResponse>('/api/v1/auth/patient/login', {
     phone_number: phone,
   })
   return mapLogin(data)
@@ -61,7 +61,7 @@ export async function doctorLogin(
     const role: UserRole = email.includes('admin') ? 'ADMIN' : 'DOCTOR'
     return { accessToken: 'dev-bypass', user: { ...getDevUser(role), email } }
   }
-  const { data } = await api.post<LoginResponse>('/api/auth/staff/login', {
+  const { data } = await api.post<LoginResponse>('/api/v1/auth/staff/login', {
     email,
     password,
   })
@@ -82,6 +82,6 @@ export async function doctorSignup(payload: {
       user: { ...getDevUser('DOCTOR'), email: payload.email, fullName: payload.fullName },
     }
   }
-  const { data } = await api.post<LoginResponse>('/api/auth/staff/signup', payload)
+  const { data } = await api.post<LoginResponse>('/api/v1/auth/staff/signup', payload)
   return mapLogin(data)
 }

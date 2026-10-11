@@ -8,7 +8,7 @@ export const api = axios.create({
 })
 
 api.interceptors.request.use((config) => {
-  const isPublicAuth = config.url?.startsWith('/api/auth/')
+  const isPublicAuth = config.url?.startsWith('/api/v1/auth/')
   if (!isPublicAuth) {
     const token = useAuthStore.getState().token
     if (token) {

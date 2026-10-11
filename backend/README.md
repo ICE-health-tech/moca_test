@@ -27,11 +27,11 @@ Postgres `raw_answers` stores MinIO object refs, not base64.
 
 Fetch a drawing for doctor review:
 
-`GET /api/test-sessions/{sessionId}/drawings/{answerKey}`
+`GET /api/v1/test-sessions/{sessionId}/drawings/{answerKey}`
 
 `answerKey`: `section_1a_trail_canvas` | `section_1b_cube_canvas` | `section_1c_clock_canvas`
 
-Health check: `GET http://localhost:8080/api/health`
+Health check: `GET http://localhost:8080/api/v1/health`
 
 ## Stack
 
@@ -61,10 +61,10 @@ Bound in Spring as `whisper.*` → `WhisperProperties` (`AiLayer`). Keep API key
 
 ```bash
 # Config check (no secrets)
-curl -s http://localhost:8080/api/ai/whisper/status
+curl -s http://localhost:8080/api/v1/ai/whisper/status
 
 # Transcribe audio (multipart field name: file)
-curl -s -X POST http://localhost:8080/api/ai/whisper/transcribe \
+curl -s -X POST http://localhost:8080/api/v1/ai/whisper/transcribe \
   -F "file=@sample.webm;type=audio/webm"
 ```
 

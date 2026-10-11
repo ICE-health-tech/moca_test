@@ -89,7 +89,7 @@ PatientResultsPage
   → usePatientSessions()           // Orchestration
     → queryKey: patient.sessions(id)
     → patientApi.listSessions(id)  // Link
-      → GET /api/patient/{id}/sessions
+      → GET /api/v1/patient/{id}/sessions
         → test_sessions SQL
   → useUiStore(s => resultsFilter) // Zustand — client filter only
   → map rows → GlassCard
@@ -102,7 +102,7 @@ PatientResultsPage
 ```text
 MocaTestContainer onComplete
   → useSubmitSession().mutate(payload)
-    → POST /api/test-sessions
+    → POST /api/v1/test-sessions
     → onSuccess: invalidateQueries(patient.sessions)
   → navigate /patient/results
 ```
@@ -136,7 +136,7 @@ VITE_USE_MOCK=true     # false when Spring endpoints exist
 ## Implementation slices (order)
 
 1. ✅ Architecture + queryKeys + api modules + hooks scaffold
-2. `POST /api/test-sessions` + `useSubmitSession`
+2. `POST /api/v1/test-sessions` + `useSubmitSession`
 3. Replace mocks on patient/doctor/admin lists
 4. JWT login replaces `loginDev`
 
