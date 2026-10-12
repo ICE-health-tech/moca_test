@@ -71,10 +71,9 @@ public class DoctorReviewUseCaseImpl implements DoctorReviewUseCase {
     @Transactional(readOnly = true)
     public List<ReviewQueueItemDto> listReviews(UUID doctorId) {
         requireDoctor(doctorId);
+        // Strictly scoped to this doctor's own pending reviews — never fall
+        // back to every doctor's queue, or patient accounts leak across staff.
         List<TestSessionEntity> pending = sessions.findPendingForDoctor(doctorId, TestSessionStatus.PENDING_REVIEW);
-        if (pending.isEmpty()) {
-            pending = sessions.findByStatusOrderBySubmittedAtAsc(TestSessionStatus.PENDING_REVIEW);
-        }
         if (pending.isEmpty()) {
             return List.of();
         }

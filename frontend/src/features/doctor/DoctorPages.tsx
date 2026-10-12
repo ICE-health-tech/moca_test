@@ -14,6 +14,7 @@ const DOCTOR_NAV = [
 
 export function DoctorDashboardPage() {
   const { data: reviews = [], isLoading, error } = useDoctorReviews()
+  const { data: patients = [] } = useDoctorPatients()
   const aiOn = useUiStore((s) => s.doctorAiAssist)
   const setAiOn = useUiStore((s) => s.setDoctorAiAssist)
 
@@ -26,7 +27,7 @@ export function DoctorDashboardPage() {
         </GlassCard>
         <GlassCard>
           <p className="text-sm text-slate-500">Bệnh nhân</p>
-          <p className="text-3xl font-bold text-blue-600">12</p>
+          <p className="text-3xl font-bold text-blue-600">{patients.length}</p>
         </GlassCard>
         {/* Amber/yellow = AI assist (same convention as DoctorReviewPage) */}
         <GlassCard>
@@ -91,15 +92,33 @@ export function DoctorPatientsPage() {
       </div>
       <QueryState isLoading={isLoading} error={error}>
         <div className="space-y-3">
-          {patients.map((p) => (
-            <GlassCard key={p.id}>
-              <p className="font-bold text-slate-900">{p.name}</p>
-              <p className="text-sm text-slate-600">
-                Lần test gần nhất: {formatDateVi(p.lastTestAt)} · {p.lastScoreLabel}
-                /30
-              </p>
-            </GlassCard>
-          ))}
+          {patients.map((p) => {
+            const latest = p.sessions?.[0]
+            return (
+              <GlassCard key={p.id}>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-bold text-slate-900">{p.name}</p>
+                    {p.phone && (
+                      <p className="text-sm text-slate-500">{p.phone}</p>
+                    )}
+                    <p className="text-sm text-slate-600">
+                      Lần test gần nhất: {formatDateVi(p.lastTestAt)} ·{' '}
+                      {p.lastScoreLabel}/30
+                    </p>
+                  </div>
+                  {latest && (
+                    <Link
+                      to={`/clinician/reviews/${latest.id}`}
+                      className="shrink-0 rounded-2xl bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700"
+                    >
+                      Xem bài test
+                    </Link>
+                  )}
+                </div>
+              </GlassCard>
+            )
+          })}
         </div>
       </QueryState>
     </AppShell>

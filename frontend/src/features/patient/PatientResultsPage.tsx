@@ -7,6 +7,7 @@ import { useAuthStore } from '../../stores/authStore'
 import { formatDateVi } from '../../shared/utils/format'
 import { usePatientSessions } from './usePatientQueries'
 import { PatientResultsSummary } from './PatientResultsSummary'
+import './PatientResults.css'
 
 const FILTERS: { id: ResultsFilter; label: string }[] = [
   { id: 'all', label: 'Tất cả' },
@@ -18,7 +19,8 @@ export function PatientResultsPage() {
   const { data = [], isLoading, error } = usePatientSessions()
   const filter = useUiStore((s) => s.patientResultsFilter)
   const setFilter = useUiStore((s) => s.setPatientResultsFilter)
-  const patientName = useAuthStore((s) => s.user?.fullName)
+  const user = useAuthStore((s) => s.user)
+  const patientName = user?.fullName
 
   const filtered = data.filter((r) => {
     if (filter === 'pending') return r.status === 'PENDING_REVIEW'
@@ -61,7 +63,7 @@ export function PatientResultsPage() {
         {activeSession && (
           <>
             {filtered.length > 1 && (
-              <div className="mb-3 flex shrink-0 gap-2 overflow-x-auto pb-1">
+              <div className="moca-scroll-x mb-3 flex shrink-0 gap-2 pb-1">
                 {filtered.map((s) => (
                   <button
                     key={s.id}
@@ -85,6 +87,9 @@ export function PatientResultsPage() {
             <PatientResultsSummary
               session={activeSession}
               patientName={patientName ?? undefined}
+              educationYears={user?.educationYears}
+              gender={user?.gender}
+              dateOfBirth={user?.dateOfBirth}
             />
           </>
         )}

@@ -1,6 +1,6 @@
 import { LogOut } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { Link } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 import { useAuthStore } from '../../stores/authStore'
 import type { BreadcrumbCrumb } from '../lib/breadcrumbs'
 import { MocaBreadcrumb } from './layout/MocaBreadcrumb'
@@ -50,13 +50,19 @@ export function AppShell({
         {nav.length > 0 && (
           <nav className="mx-auto flex max-w-5xl gap-2 overflow-x-auto px-4 pb-2">
             {nav.map((item) => (
-              <Link
+              <NavLink
                 key={item.to}
                 to={item.to}
-                className="whitespace-nowrap rounded-xl bg-white/70 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-white"
+                end
+                className={({ isActive }) =>
+                  'whitespace-nowrap rounded-xl px-3 py-1.5 text-sm font-medium transition-colors ' +
+                  (isActive
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'bg-white/70 text-slate-700 hover:bg-white')
+                }
               >
                 {item.label}
-              </Link>
+              </NavLink>
             ))}
           </nav>
         )}

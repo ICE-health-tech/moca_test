@@ -1,0 +1,21 @@
+/* Visible, touch-draggable horizontal scrollers (results page) */
+.moca-scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(37, 99, 235, 0.5) transparent;
+  cursor: grab;
+}
+.moca-scroll-x:active {
+  cursor: grabbing;
+}
+.moca-scroll-x::-webkit-scrollbar {
+  height: 6px;
+}
+.moca-scroll-x::-webkit-scrollbar-track {
+  background: transparent;
+}
+.moca-scroll-x::-webkit-scrollbar-thumb {
+  background: rgba(37, 99, 235, 0.4);
+  border-radius: 999px;
+}

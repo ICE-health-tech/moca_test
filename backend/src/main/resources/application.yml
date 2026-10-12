@@ -4,7 +4,7 @@ spring:
   datasource:
     url: jdbc:postgresql://${DB_HOST:127.0.0.1}:${DB_PORT:5432}/${DB_NAME:moca_db}
     username: ${DB_USER:postgres}
-    password: ${DB_PASSWORD:duylongadminpass}
+    password: ${DB_PASSWORD:duylongpass}
     hikari:
       maximum-pool-size: 10
   jpa:

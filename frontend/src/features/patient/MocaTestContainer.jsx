@@ -53,6 +53,16 @@ function fmtMMSS(totalSeconds) {
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
+/* Speak digits as Vietnamese number words so the TTS engine reads
+   "5" as "năm" instead of an English "five" or a misheard "ô". */
+const VIET_DIGITS = ["không", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"];
+function toVietnameseDigits(digits = [], gapMs = 900) {
+  return digits.map((d, i) => ({
+    text: VIET_DIGITS[Number(d)] ?? String(d),
+    delayBeforeMs: i === 0 ? 0 : gapMs,
+  }));
+}
+
 /* =============================================================================
    useSpeech — defensive Web Speech (TTS) wrapper (CLAUDE.md §2)
    -----------------------------------------------------------------------------
@@ -183,6 +193,30 @@ function ProgressBar({ value, currentStep, totalSteps = 9 }) {
         <div className="moca-progress__fill" style={{ width: `${value}%` }} />
       </div>
     </header>
+  );
+}
+
+/* Live elapsed-time clock shown for the whole exam (QA: no clock/timer). */
+function ExamClock() {
+  const [now, setNow] = useState(Date.now());
+  const startRef = useRef(Date.now());
+  useEffect(() => {
+    startRef.current = Date.now();
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const elapsed = Math.max(0, Math.floor((now - startRef.current) / 1000));
+  return (
+    <div
+      className="flex items-center gap-2 rounded-full border border-[var(--moca-separator)] bg-surface px-3 py-1.5"
+      title="Thời gian đã làm bài"
+      aria-label={`Thời gian đã làm bài: ${fmtMMSS(elapsed)}`}
+    >
+      <Clock size={16} className="text-[var(--moca-muted)]" />
+      <span className="font-mono text-sm font-bold tabular-nums text-[var(--moca-text)]">
+        {fmtMMSS(elapsed)}
+      </span>
+    </div>
   );
 }
 
@@ -568,7 +602,7 @@ function Section1Visuospatial({ speech, answers, setAnswer, onNext, onBack, ente
           Phần vẽ sẽ được bác sĩ chấm điểm khi duyệt kết quả (tối đa 5 điểm).
         </p>
       </StepShell>
-      <NavFooter onBack={handleBack} onNext={handleNext} nextLabel={i < sub.length - 1 ? "Câu tiếp" : "Phần tiếp theo"} />
+      <NavFooter onBack={handleBack} onNext={handleNext} />
     </>
   );
 }
@@ -634,11 +668,7 @@ function Section2Naming({ set, speech, answers, setAnswer, onNext, onBack, enter
           </div>
         </div>
       </StepShell>
-      <NavFooter
-        onBack={handleBack}
-        onNext={handleNext}
-        nextLabel={i < animals.length - 1 ? "Câu tiếp" : "Phần tiếp theo"}
-      />
+      <NavFooter onBack={handleBack} onNext={handleNext} />
     </>
   );
 }
@@ -956,13 +986,20 @@ function RecorderButton({ label, value, onSaved, onStart, compact = false, showP
 function Section3Memory({ set, speech, answers, setAnswer, onNext, onBack, markSection3End }) {
   const words = set.memory_words.map((w) => w.word);
   const [revealed, setRevealed] = useState(-1);
+  const [playing, setPlaying] = useState(false);
   const timersRef = useRef([]);
 
-  const playWords = () => {
+  const stopWords = useCallback(() => {
     timersRef.current.forEach(clearTimeout);
     timersRef.current = [];
-    setRevealed(-1);
     speech.cancel();
+    setRevealed(-1);
+    setPlaying(false);
+  }, [speech]);
+
+  const playWords = () => {
+    stopWords();
+    setPlaying(true);
     speech.speak("Hãy lắng nghe và ghi nhớ năm từ sau.");
     words.forEach((w, idx) => {
       const t = setTimeout(() => {
@@ -971,6 +1008,12 @@ function Section3Memory({ set, speech, answers, setAnswer, onNext, onBack, markS
       }, 1500 + idx * 1200);
       timersRef.current.push(t);
     });
+    // Auto-reset the button once the final word has been spoken.
+    const done = setTimeout(
+      () => setPlaying(false),
+      1500 + words.length * 1200 + 1400,
+    );
+    timersRef.current.push(done);
   };
 
   useEffect(() => () => timersRef.current.forEach(clearTimeout), []);
@@ -988,10 +1031,23 @@ function Section3Memory({ set, speech, answers, setAnswer, onNext, onBack, markS
       >
         <button
           type="button"
-          onClick={playWords}
-          className="w-full min-h-[44px] inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-4 py-3 text-white font-bold hover:bg-blue-700"
+          onClick={playing ? stopWords : playWords}
+          className={
+            "w-full min-h-[44px] inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-white font-bold " +
+            (playing
+              ? "bg-red-500 hover:bg-red-600"
+              : "bg-blue-600 hover:bg-blue-700")
+          }
         >
-          <Play size={20} /> Nghe 5 từ
+          {playing ? (
+            <>
+              <Square size={20} /> Dừng
+            </>
+          ) : (
+            <>
+              <Play size={20} /> Nghe 5 từ
+            </>
+          )}
         </button>
 
         <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 mt-6">
@@ -1037,6 +1093,7 @@ function LetterAVigilance({ speech, onComplete }) {
   const [shown, setShown] = useState("");
   const [idx, setIdx] = useState(-1);
   const [flashA, setFlashA] = useState(false); // visual feedback for correct press
+  const [hue, setHue] = useState(210); // background hue — changes every letter
   const pressedRef = useRef(new Set()); // indices the user pressed on
   const idxRef = useRef(-1);
   const timerRef = useRef(null);
@@ -1054,6 +1111,10 @@ function LetterAVigilance({ speech, onComplete }) {
       idxRef.current = i;
       setIdx(i);
       setShown(ATTENTION.letterStream[i]);
+      // Distinct background colour per letter so the switch is visible.
+      setHue((i * 47) % 360);
+      // Read the letter aloud as well as showing it.
+      speech.speak(ATTENTION.letterStream[i]);
       i++;
       timerRef.current = setTimeout(tick, 1000);
     };
@@ -1104,11 +1165,12 @@ function LetterAVigilance({ speech, onComplete }) {
       </p>
       <div className="flex flex-col items-center gap-5">
         <div
-          className={`h-36 w-36 rounded-3xl flex items-center justify-center text-7xl font-bold transition-all ${
-            flashA
-              ? "bg-green-500 text-white scale-110"
-              : "bg-gray-900 text-white"
+          className={`h-36 w-36 rounded-3xl flex items-center justify-center text-7xl font-bold transition-all text-white ${
+            flashA ? "scale-110" : ""
           }`}
+          style={{
+            backgroundColor: flashA ? "#16a34a" : `hsl(${hue} 65% 42%)`,
+          }}
         >
           {phase === "running" ? shown : phase === "done" ? "✓" : "—"}
         </div>
@@ -1198,15 +1260,15 @@ function Section4Attention({ speech, answers, setAnswer, onNext, onBack, enterFr
                   <span className="text-xs font-medium text-gray-500">Nhắc lại theo chiều xuôi</span>
                   <button
                     type="button"
-                    onClick={() => speech.speak(ATTENTION.digitsForward.join(" ... "))}
+                    onClick={() => speech.speak(toVietnameseDigits(ATTENTION.digitsForward))}
                     className="inline-flex items-center gap-1 text-blue-600 font-medium text-xs"
                   >
                     <Volume2 size={14} /> Nghe dãy số
                   </button>
                 </div>
-                <div className="rounded-2xl bg-gray-50 border border-gray-200 px-4 py-3 mb-3 text-center font-mono text-xl font-bold text-gray-900 spacing-loose">
-                  {ATTENTION.digitsForward.join("  —  ")}
-                </div>
+                <p className="mb-3 rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-4 py-3 text-center text-xs text-gray-400">
+                  Dãy số chỉ phát bằng giọng nói — không hiển thị trên màn hình
+                </p>
                 <TextFieldWithRecording
                   value={fwd}
                   inputMode="numeric"
@@ -1222,15 +1284,15 @@ function Section4Attention({ speech, answers, setAnswer, onNext, onBack, enterFr
                   <span className="text-xs font-medium text-gray-500">Nhắc lại theo chiều ngược</span>
                   <button
                     type="button"
-                    onClick={() => speech.speak(ATTENTION.digitsBackwardRead.join(" ... "))}
+                    onClick={() => speech.speak(toVietnameseDigits(ATTENTION.digitsBackwardRead))}
                     className="inline-flex items-center gap-1 text-blue-600 font-medium text-xs"
                   >
                     <Volume2 size={14} /> Nghe dãy số
                   </button>
                 </div>
-                <div className="rounded-2xl bg-gray-50 border border-gray-200 px-4 py-3 mb-3 text-center font-mono text-xl font-bold text-gray-900">
-                  {ATTENTION.digitsBackwardRead.join("  —  ")}
-                </div>
+                <p className="mb-3 rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-4 py-3 text-center text-xs text-gray-400">
+                  Dãy số chỉ phát bằng giọng nói — không hiển thị trên màn hình
+                </p>
                 <TextFieldWithRecording
                   value={bwd}
                   inputMode="numeric"
@@ -1274,11 +1336,7 @@ function Section4Attention({ speech, answers, setAnswer, onNext, onBack, enterFr
           </div>
         )}
       </StepShell>
-      <NavFooter
-        onBack={handleBack}
-        onNext={handleNext}
-        nextLabel={sub < subSteps.length - 1 ? "Câu tiếp" : "Phần tiếp theo"}
-      />
+      <NavFooter onBack={handleBack} onNext={handleNext} />
     </>
   );
 }
@@ -1305,8 +1363,8 @@ function Section5Sentences({ set, speech, answers, setAnswer, onNext, onBack }) 
           {set.sentences.map((sentence, idx) => (
             <div key={idx} className="moca-panel p-5">
               <div className="flex items-start justify-between gap-3 mb-4">
-                <p className="text-lg font-medium text-[var(--moca-text)] flex-1 leading-relaxed">
-                  "{sentence}"
+                <p className="text-base text-[var(--moca-muted)] flex-1 leading-relaxed">
+                  Câu {idx + 1} — chỉ phát bằng giọng nói, không hiện chữ
                 </p>
                 <button
                   type="button"
@@ -2031,7 +2089,14 @@ export default function MocaTestContainer() {
 
   return (
     <div className="moca-exam">
-      {phase === "exam" && <ProgressBar value={progress} currentStep={currentStep} />}
+      {phase === "exam" && (
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex-1">
+            <ProgressBar value={progress} currentStep={currentStep} />
+          </div>
+          <ExamClock />
+        </div>
+      )}
 
       {phase === "start" && (
         <StartScreen
